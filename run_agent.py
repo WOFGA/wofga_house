@@ -551,8 +551,8 @@ if not report_text:
 # ==========================================
 # 4. 發送 Telegram 通知（安全純文字模式，移除 Markdown 避免 400 錯誤）
 # ==========================================
-telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN") or "8842276224:AAHn3YLud2Tilh8Gqub0BKCn4o7ghi0s2c0"
+telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID") or "8593121231"
 
 if telegram_token and telegram_chat_id:
     import requests
@@ -569,9 +569,14 @@ if telegram_token and telegram_chat_id:
         "text": full_tg_text
     }
     try:
+        print(f"正在發送 Telegram 推播至 Chat ID: {telegram_chat_id} ...")
         res = requests.post(tg_url, json=payload, timeout=15)
         print(f"Telegram 推播狀態碼：{res.status_code}")
-        if res.status_code != 200:
+        if res.status_code == 200:
+            print("Telegram 推播成功送達！")
+        else:
             print(f"Telegram 推播回傳內容：{res.text}")
     except Exception as err:
         print(f"Telegram 推播連線失敗：{err}")
+else:
+    print("未設定 TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID，略過推播。")
