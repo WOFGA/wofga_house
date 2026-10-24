@@ -687,7 +687,7 @@
       const targetHigh = Math.round(item591.askTotal * 0.92);
       const targetUnit = (targetLow / item591.ping).toFixed(1);
 
-      item591.vipTargetPrice = `${targetLow:,} 萬 ~ ${targetHigh:,} 萬 (約 ${targetUnit} 萬/坪)`;
+      item591.vipTargetPrice = `${targetLow.toLocaleString()} 萬 ~ ${targetHigh.toLocaleString()} 萬 (約 ${targetUnit} 萬/坪)`;
       item591.vipPriceHistory = `同社區/同路段近一年實登成交均價約 ${item591.regUnit} 萬/坪，本案 591 開價 ${item591.askUnit} 萬/坪，開價溢價幅度達 +${item591.diffPct}%，具備顯著議價折讓空間！`;
       item591.vipNegotiationTip = `建議勿照 591 開價追高，以周邊實登均價折讓點 ${targetLow} 萬 (約 ${targetUnit} 萬/坪) 作為首輪斡旋進場點，直接爭取約 ${item591.askTotal - targetLow} 萬殺價破口！`;
       item591.aiBadge = `🏷️ 591在售開價 (溢價 +${item591.diffPct}%)`;
