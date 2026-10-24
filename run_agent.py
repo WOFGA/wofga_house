@@ -549,34 +549,54 @@ if not report_text:
 今日精選 5 大 A 級案源平均低於區域實登行情 55%~68%，具備高度租金防禦性與新青安月付金優勢。建議自住客與置產族優先鎖定具備雙語學區與北外環捷運交通利多之路段，以 AI 建議首輪下斡旋區間切入進場。"""
 
 # ==========================================
-# 4. 發送 Telegram 通知（安全純文字模式，移除 Markdown 避免 400 錯誤）
+# 4. 發送 Telegram 通知（安全純文字模式，智慧前綴清理與雙重備援）
 # ==========================================
-telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN") or "8842276224:AAHn3YLud2Tilh8Gqub0BKCn4o7ghi0s2c0"
-telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID") or "8593121231"
+DEFAULT_TG_TOKEN = "8842276224:AAHn3YLud2Tilh8Gqub0BKCn4o7ghi0s2c0"
+DEFAULT_TG_CHAT_ID = "8593121231"
 
-if telegram_token and telegram_chat_id:
-    import requests
-    tg_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+env_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+env_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+
+import requests
+
+full_tg_text = f"🏠 【wofga_house 台南房產 AI 投資日報】\n\n{report_text}"
+if len(full_tg_text) > 4000:
+    full_tg_text = full_tg_text[:3980] + "\n...(完整數據請見儀表板)"
+
+def try_send_telegram(token, chat_id, label=""):
+    if not token or not chat_id:
+        return False
+    # 清理多餘的 bot 前綴（若 Secret 輸入了 bot884227... 則自動去重）
+    clean_token = token.strip()
+    if clean_token.lower().startswith("bot"):
+        clean_token = clean_token[3:]
     
-    # 限制 Telegram 訊息上限（安全上限 4000 字元）
-    full_tg_text = f"🏠 【wofga_house 台南房產 AI 投資日報】\n\n{report_text}"
-    if len(full_tg_text) > 4000:
-        full_tg_text = full_tg_text[:3980] + "\n...(完整數據請見儀表板)"
-
-    # 移除 parse_mode: "Markdown"，使用純文字模式保證相容
+    url = f"https://api.telegram.org/bot{clean_token}/sendMessage"
     payload = {
-        "chat_id": telegram_chat_id,
+        "chat_id": str(chat_id).strip(),
         "text": full_tg_text
     }
     try:
-        print(f"正在發送 Telegram 推播至 Chat ID: {telegram_chat_id} ...")
-        res = requests.post(tg_url, json=payload, timeout=15)
+        print(f"正在嘗試發送 Telegram 推播 ({label})...")
+        res = requests.post(url, json=payload, timeout=15)
         print(f"Telegram 推播狀態碼：{res.status_code}")
         if res.status_code == 200:
             print("Telegram 推播成功送達！")
+            return True
         else:
-            print(f"Telegram 推播回傳內容：{res.text}")
+            print(f"Telegram 推播失敗回傳：{res.text}")
+            return False
     except Exception as err:
-        print(f"Telegram 推播連線失敗：{err}")
-else:
-    print("未設定 TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID，略過推播。")
+        print(f"Telegram 推播連線異常：{err}")
+        return False
+
+# 優先嘗試環境變數設定之 Token
+sent_success = False
+if env_token and env_chat_id:
+    sent_success = try_send_telegram(env_token, env_chat_id, label="GitHub Secrets 環境變數")
+
+# 若環境變數未提供，或環境變數回傳 404 / 失敗，則啟動已知有效之預設金鑰保底
+if not sent_success:
+    if env_token != DEFAULT_TG_TOKEN or env_chat_id != DEFAULT_TG_CHAT_ID:
+        print("啟動保底推播憑證發送...")
+        try_send_telegram(DEFAULT_TG_TOKEN, DEFAULT_TG_CHAT_ID, label="官方保底憑證")
