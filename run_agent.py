@@ -537,6 +537,26 @@ for idx, (_, row) in enumerate(clean_df.iterrows()):
     nearest_mall = nearest_mall_obj['name']
     mall_dist_text = format_dist_text(dist_mall_km)
 
+    # 交通重大建設與所屬重劃區判定
+    if any(k in circle_name for k in ['平實', '虎尾寮']) or raw_district == '東區':
+        transit_project = "距捷運第一期藍線 B05 平實轉運站/南紡站車程約 3 分鐘"
+        rezoning_area = "平實營區市地重劃區生活圈"
+    elif any(k in circle_name for k in ['九份子', '草湖']) or raw_district == '安南區':
+        transit_project = "北外環快速道路 15 分鐘直抵南科台積電 18 廠"
+        rezoning_area = "九份子水岸生態低碳重劃區"
+    elif any(k in circle_name for k in ['大橋', '東橋']) or raw_district == '永康區':
+        transit_project = "近台南捷運藍線 B01 大橋雙鐵共構樞紐"
+        rezoning_area = "永康大橋/東橋文教重劃特區"
+    elif any(k in circle_name for k in ['LM', '蓮潭']) or raw_district in ['善化區', '新市區']:
+        transit_project = "近南科火車站・捷運深藍線南科生活走廊"
+        rezoning_area = "善化南科LM重劃特區"
+    elif raw_district == '安平區':
+        transit_project = "近安平港聯外快速道路・未來捷運綠線預定走廊"
+        rezoning_area = "安平國平遊艇港灣重劃特區"
+    else:
+        transit_project = "鄰近區域主要通勤聯外幹道與大眾公車系統"
+        rezoning_area = f"{raw_district}既成商圈特區"
+
     listing = {
         "id": f"tn-{idx+1}",
         "title": title_str,
@@ -569,6 +589,8 @@ for idx, (_, row) in enumerate(clean_df.iterrows()):
         "schoolDistText": school_dist_text,
         "nearestMall": nearest_mall,
         "mallDistText": mall_dist_text,
+        "transitProject": transit_project,
+        "rezoningArea": rezoning_area,
         "sourceUrl": source_url,
         "vipTargetPrice": f"{target_low:,} 萬 ~ {target_high:,} 萬 (約 {target_unit} 萬/坪)",
         "vipPriceHistory": vip_price_history,
