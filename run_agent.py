@@ -340,7 +340,7 @@ clean_df = raw_df.iloc[1:].reset_index(drop=True)
 clean_df = clean_df[clean_df['交易標的'].astype(str).str.contains('建物', na=False)].copy()
 
 # 過濾備註欄含有親友、員工、共有人、特殊關係等非典型交易
-special_keywords = ['親友', '員工', '共有人', '特殊關係', '關係人', '二親等']
+special_keywords = ['親友', '員工', '共有人', '特殊關係', '關係人', '二親等', '持分', '未登記', '畸零', '毛胚', '民法']
 clean_df = clean_df[~clean_df['備註'].astype(str).apply(
     lambda x: any(k in str(x) for k in special_keywords)
 )].copy()
@@ -363,7 +363,8 @@ clean_df['unit_wan'] = clean_df.apply(
     else round(r['total_wan'] / r['ping'], 1),
     axis=1
 )
-clean_df = clean_df[(clean_df['unit_wan'] > 0) & (clean_df['ping'] > 0)].copy()
+# 排除非典型極端低價/持分畸零交易（總價低於200萬或單價低於12萬/坪），確保呈現真實正常住宅市場價格
+clean_df = clean_df[(clean_df['total_wan'] >= 200) & (clean_df['unit_wan'] >= 12.0) & (clean_df['ping'] >= 10.0)].copy()
 print(f"篩選後有效台南建物交易筆數：{len(clean_df)}")
 
 # 以 Pandas 依照「鄉鎮市區」與「建物型態」分組計算真實均價/中位數 (regUnit)
