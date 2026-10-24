@@ -25,10 +25,9 @@ with zipfile.ZipFile(zip_path, 'r') as z:
 print(f"成功載入資料總筆數：{len(df)}")
 
 # 2. 排除內政部 CSV 常見的第二列英文說明行（如果存在）
-if len(df) > 0 and str(df.iloc[0].values).find('area') != -1 or 'building' in str(df.columns).lower():
-    # 檢查第一列是否為英文說明
+if len(df) > 0:
     first_val = str(df.iloc[0, 0])
-    if 'area' in first_val or '1.' in first_val or '建物' not in first_val and not first_val.replace('.','',1).isdigit():
+    if 'area' in first_val.lower() or '1.' in first_val or '建物' not in first_val and not first_val.replace('.','',1).isdigit():
         df = df.iloc[1:].reset_index(drop=True)
 
 sample_df = df.head(5)
@@ -37,7 +36,6 @@ listings = []
 for idx, row in sample_df.iterrows():
     district = str(row.get('鄉鎮市區', '安平區'))
     
-    # 安全轉換數值，避免字串轉浮點數失敗
     try:
         pings = float(row.get('建物移轉總面積平方公尺', 100)) / 3.3058
     except (ValueError, TypeError):
@@ -70,12 +68,12 @@ with open('listings.json', 'w', encoding='utf-8') as jf:
     json.dump(listings, jf, ensure_ascii=False, indent=2)
 print("已成功更新 listings.json 資料庫！")
 
-# 3. 初始化 Gemini AI 進行房市分析日報
+# 3. 初始化 Gemini AI 進行房市分析日報（使用最新支援的模型）
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 prompt = f"請根據以下最新實價登錄數據，以專業房地產分析師口吻撰寫一份簡短、精彩的房市日報：\n{sample_df.to_string()}"
 
 response_ai = client.models.generate_content(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     contents=prompt,
 )
 
