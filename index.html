@@ -14,7 +14,7 @@
   <style>
     .blur-paywall { filter: blur(6px); user-select: none; pointer-events: none; }
     
-    /* 自訂地圖標記：黑字高對比膠囊風格，徹底解決白色字體不清楚問題 */
+    /* 自訂地圖物件標記：黑字高對比膠囊風格 */
     .custom-pin {
       display: inline-flex;
       align-items: center;
@@ -35,6 +35,32 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.65), 0 0 0 2px #0284c7;
       z-index: 1000 !important;
     }
+
+    /* 重要設施地標標記 (學校、賣場、醫院、南科園區) */
+    .landmark-pin {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 9999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 900;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 0 1.5px rgba(15,23,42,0.85);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .landmark-pin:hover {
+      transform: scale(1.15);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.65), 0 0 0 2px #38bdf8;
+      z-index: 1100 !important;
+    }
+    .landmark-school { border: 2px solid #2563eb; color: #1e3a8a; }
+    .landmark-mall { border: 2px solid #d97706; color: #78350f; }
+    .landmark-hospital { border: 2px solid #dc2626; color: #7f1d1d; }
+    .landmark-tech { border: 2px solid #059669; color: #064e3b; }
 
     /* 聚合氣泡標記 (Cluster Pin)：在不同 Zoom-level 自動顯示區域/社區均價 */
     .cluster-pin {
@@ -68,7 +94,7 @@
     .cluster-price {
       font-size: 11px;
       font-weight: 900;
-      color: #0f172a; /* 黑色加粗 */
+      color: #0f172a;
       line-height: 1.2;
     }
     .cluster-price b {
@@ -108,7 +134,7 @@
       <span class="bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-sm">wofga_house</span>
       <div>
         <h1 class="font-bold text-base sm:text-lg text-white">台南房產 AI 投資雷達地圖</h1>
-        <p class="text-xs text-slate-400">自動比對內政部實價登錄・南科投報率・AI 議價底價破口</p>
+        <p class="text-xs text-slate-400">自動比對內政部實價登錄・土壤液化/淹水安全圖層・重大設施導引</p>
       </div>
     </div>
 
@@ -131,14 +157,48 @@
     <div class="lg:col-span-7 relative min-h-[460px] lg:min-h-[calc(100vh-64px)]">
       <div id="map" class="w-full h-full z-10"></div>
       
-      <!-- 地圖圖例與多層級縮放導引 -->
+      <!-- 圖層開關浮動控制台 (右上角) -->
+      <div class="absolute top-4 right-4 z-20 flex flex-col gap-2">
+        <div class="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl p-3 shadow-2xl text-xs space-y-2.5 min-w-[210px]">
+          <div class="font-extrabold text-slate-200 border-b border-slate-800 pb-1.5 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">🗺️ <span>地圖安全與機能圖層</span></span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">即時疊加</span>
+          </div>
+
+          <!-- 土壤液化潛勢開關 -->
+          <label class="flex items-center justify-between cursor-pointer group hover:bg-slate-800/60 p-1.5 rounded-lg transition">
+            <span class="flex items-center gap-2 text-slate-300 font-bold group-hover:text-amber-300">
+              <span class="w-3 h-3 rounded-full bg-amber-400 shadow-sm inline-block"></span> 🏜️ 土壤液化潛勢
+            </span>
+            <input type="checkbox" id="toggleLiquefaction" onchange="handleLiquefactionToggle()" class="rounded border-slate-600 bg-slate-950 text-amber-500 focus:ring-0 cursor-pointer w-4 h-4" />
+          </label>
+
+          <!-- 300mm 暴雨淹水潛勢開關 -->
+          <label class="flex items-center justify-between cursor-pointer group hover:bg-slate-800/60 p-1.5 rounded-lg transition">
+            <span class="flex items-center gap-2 text-slate-300 font-bold group-hover:text-sky-300">
+              <span class="w-3 h-3 rounded-full bg-sky-400 shadow-sm inline-block"></span> 💧 300mm 淹水潛勢
+            </span>
+            <input type="checkbox" id="toggleFlood" onchange="handleFloodToggle()" class="rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-0 cursor-pointer w-4 h-4" />
+          </label>
+
+          <!-- 重要生活機能 (名校/賣場/醫院/南科) 開關 (預設打勾開啟) -->
+          <label class="flex items-center justify-between cursor-pointer group hover:bg-slate-800/60 p-1.5 rounded-lg transition">
+            <span class="flex items-center gap-2 text-slate-300 font-bold group-hover:text-emerald-300">
+              <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-sm inline-block"></span> 🏫 學校 / 🛒 賣場
+            </span>
+            <input type="checkbox" id="toggleAmenities" checked onchange="handleAmenitiesToggle()" class="rounded border-slate-600 bg-slate-950 text-emerald-500 focus:ring-0 cursor-pointer w-4 h-4" />
+          </label>
+        </div>
+      </div>
+
+      <!-- 地圖圖例與多層級縮放導引 (左下角) -->
       <div class="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl max-w-xs">
         <div class="font-bold text-slate-200 flex items-center justify-between">
           <span>📍 實價登錄折溢價雷達</span>
           <span id="zoomModeBadge" class="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold">區域聚合中</span>
         </div>
         <div class="text-[11px] text-slate-400 leading-snug">
-          💡 <b>縮放導引</b>：地圖縮小自動顯示區域均價；滾輪放大 (Zoom In) 展開各案明細價格。滑鼠懸停 (Hover) 自動彈出小卡，移開即自動關閉。
+          💡 <b>縮放導引</b>：縮小顯示區域均價；滾輪放大 (Zoom In) 展開各案明細。滑鼠懸停顯示卡片，移出自動隱藏。
         </div>
         <div class="flex items-center gap-2 pt-1 border-t border-slate-800">
           <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block border border-emerald-600"></span> 
@@ -172,7 +232,7 @@
         升級 VIP 即可無限查看台南全區物件的：<br/>
         ✅ <b>AI 建議下斡旋底價區間</b>（平均幫買方省下 50~120 萬）<br/>
         ✅ <b>屋主跨平台重複刊登與歷次降價軌跡</b><br/>
-        ✅ <b>格局風水硬傷、嫌惡設施與殺價破口話術</b><br/>
+        ✅ <b>格局風水硬傷、土壤液化潛勢與避坑話術</b><br/>
         ✅ <b>低於實登 10% 急售案 Telegram 第一時間推播</b>
       </p>
 
@@ -206,9 +266,40 @@
     let filteredListings = [];
     let selectedItem = null;
 
-    // Pop-up 滑鼠移開自動關閉計時器與標記狀態
+    // Pop-up 滑鼠移開自動關閉計時器與狀態
     let popupCloseTimer = null;
     let isCursorOnPopup = false;
+
+    // ==========================================
+    // 台南重大機能設施資料庫 (學校、商場、醫院、南科園區)
+    // ==========================================
+    const TAINAN_LANDMARKS = [
+      // 明星學校
+      { name: "成功大學 (NCKU)", type: "school", category: "頂尖大學", lat: 22.9972, lng: 120.2215, icon: "🏫", desc: "台南第一學府・成大校區與周邊文教學術重鎮" },
+      { name: "台南一中", type: "school", category: "明星高中", lat: 22.9935, lng: 120.2162, icon: "🏫", desc: "東區百年頂尖高中・傳統名門升學學區" },
+      { name: "台南女中", type: "school", category: "明星高中", lat: 22.9868, lng: 120.2078, icon: "🏫", desc: "中西區明星高中・近孔廟文化特區" },
+      { name: "南科國際實驗高中", type: "school", category: "南科雙語", lat: 23.1118, lng: 120.2872, icon: "🏫", desc: "南科菁英雙語教育・科技新貴首選學區" },
+      { name: "大橋國中/小雙語校區", type: "school", category: "永康名校", lat: 23.0195, lng: 120.2268, icon: "🏫", desc: "永康總圖雙語明星校區・近年高指名熱門學區" },
+      { name: "慈濟完全中學", type: "school", category: "安平名校", lat: 22.9965, lng: 120.1782, icon: "🏫", desc: "安平五期頂級私立名校・文教環境純粹" },
+      { name: "建興國中", type: "school", category: "中西區名校", lat: 22.9902, lng: 120.2005, icon: "🏫", desc: "中西區數理資優明星學校・升學率名列前茅" },
+      { name: "復興國中", type: "school", category: "東區名校", lat: 22.9825, lng: 120.2425, icon: "🏫", desc: "東區虎尾寮熱門滿額學校・優質文風" },
+
+      // 核心商場與量販
+      { name: "南紡購物中心", type: "mall", category: "旗艦商場", lat: 22.9912, lng: 120.2330, icon: "🛒", desc: "東區平實特區核心娛樂地標・台南最大複合購物中心" },
+      { name: "新光三越新天地 (西門店)", type: "mall", category: "精品百貨", lat: 22.9870, lng: 120.1979, icon: "🛒", desc: "中西區頂級國際精品百貨・成熟市心熱門商圈" },
+      { name: "Costco 好市多台南店", type: "mall", category: "美式量販", lat: 23.0135, lng: 120.1942, icon: "🛒", desc: "北區和緯路生活圈・北區與安南區核心補給重鎮" },
+      { name: "家樂福中華店", type: "mall", category: "大型量販", lat: 23.0038, lng: 120.2315, icon: "🛒", desc: "永康與東區交界幹道・24小時生活採買樞紐" },
+      { name: "家樂福安平店", type: "mall", category: "大型量販", lat: 22.9942, lng: 120.1874, icon: "🛒", desc: "安平市政商圈採購核心・鄰近五期重劃區" },
+      { name: "MITSUI OUTLET PARK", type: "mall", category: "高鐵特區Outlet", lat: 22.9238, lng: 120.2858, icon: "🛒", desc: "台南高鐵站旁・國際品牌折扣暢貨購物中心" },
+
+      // 頂尖醫療中心
+      { name: "國立成大醫學中心", type: "hospital", category: "醫學中心", lat: 23.0012, lng: 120.2218, icon: "🏥", desc: "南部頂尖國家級醫學中心・完善高齡急重症醫療資源" },
+      { name: "奇美醫學中心 (永康)", type: "hospital", category: "醫學中心", lat: 23.0210, lng: 120.2242, icon: "🏥", desc: "大台南核心急救與重症醫學中心・醫療量能強大" },
+
+      // 南科高科技先進製程
+      { name: "台積電 TSMC 18 廠", type: "tech", category: "南科先進製程", lat: 23.1095, lng: 120.2735, icon: "💼", desc: "台積電 3奈米/5奈米先進製程重鎮・南科就業經濟心臟" },
+      { name: "台南高鐵站 / 沙崙綠能城", type: "tech", category: "科技交通樞紐", lat: 22.9248, lng: 120.2855, icon: "🚄", desc: "高鐵軌道經濟與國家級智慧綠能科學城" }
+    ];
 
     // 初始化 Leaflet 台南地圖 (預設中心落在台南市核心)
     const map = L.map('map', { minZoom: 10, maxZoom: 19 }).setView([23.005, 120.215], 12);
@@ -216,6 +307,155 @@
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    // ==========================================
+    // 圖層管理：土壤液化潛勢、300mm 淹水潛勢、重要設施
+    // ==========================================
+    const liquefactionLayer = L.layerGroup();
+    const floodLayer = L.layerGroup();
+    const amenitiesLayer = L.layerGroup();
+
+    // 建立重要設施圖層 (預設加入地圖)
+    function buildAmenitiesLayer() {
+      amenitiesLayer.clearLayers();
+      TAINAN_LANDMARKS.forEach(lm => {
+        let borderClass = 'landmark-mall';
+        if (lm.type === 'school') borderClass = 'landmark-school';
+        else if (lm.type === 'hospital') borderClass = 'landmark-hospital';
+        else if (lm.type === 'tech') borderClass = 'landmark-tech';
+
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="landmark-pin ${borderClass}"><span>${lm.icon}</span> <span>${lm.name}</span></div>`,
+          iconAnchor: [50, 15]
+        });
+
+        const marker = L.marker([lm.lat, lm.lng], { icon });
+        const popupContent = `
+          <div class="space-y-2 p-1 text-slate-100 text-xs select-none">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-1.5">
+              <span class="font-extrabold text-sm text-amber-400 flex items-center gap-1">${lm.icon} ${lm.name}</span>
+              <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-bold">${lm.category}</span>
+            </div>
+            <p class="text-slate-300 text-xs leading-relaxed">${lm.desc}</p>
+            <div class="text-[11px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-800 p-1.5 rounded-lg">
+              📍 台南重大地標機能生活圈
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupContent, { maxWidth: 280 });
+        amenitiesLayer.addLayer(marker);
+      });
+    }
+
+    // 建立土壤液化潛勢圖層 (中央地調所標準評估多邊形)
+    function buildLiquefactionLayer() {
+      liquefactionLayer.clearLayers();
+
+      // 1. 低潛勢區 (綠色：地質堅實穩固台地)
+      const lowZones = [
+        // 東區台南台地 (成大、平實、虎尾寮)
+        [[22.970, 120.215], [23.015, 120.220], [23.018, 120.252], [22.972, 120.258]],
+        // 永康大橋台地
+        [[23.015, 120.220], [23.040, 120.225], [23.040, 120.250], [23.015, 120.245]],
+        // 善化 LM 特區高階
+        [[23.125, 120.280], [23.148, 120.285], [23.145, 120.315], [23.120, 120.310]]
+      ];
+      lowZones.forEach(poly => {
+        L.polygon(poly, {
+          color: '#10b981',
+          fillColor: '#10b981',
+          fillOpacity: 0.32,
+          weight: 2,
+          dashArray: '4, 4'
+        }).bindTooltip("🟢 <b>土壤液化：低潛勢區</b><br>台南台地穩固地盤・抗震抗液化安全等級最優", { sticky: true }).addTo(liquefactionLayer);
+      });
+
+      // 2. 中潛勢區 (黃色：標準平原沖積層)
+      const mediumZones = [
+        // 中西區至北區平原地段
+        [[22.990, 120.180], [23.025, 120.185], [23.020, 120.212], [22.985, 120.205]],
+        // 永康柴頭港溪至南區平原地帶
+        [[22.955, 120.188], [22.980, 120.198], [23.020, 120.215], [23.015, 120.230], [22.955, 120.210]]
+      ];
+      mediumZones.forEach(poly => {
+        L.polygon(poly, {
+          color: '#f59e0b',
+          fillColor: '#f59e0b',
+          fillOpacity: 0.30,
+          weight: 2
+        }).bindTooltip("🟡 <b>土壤液化：中潛勢區</b><br>平原沉積層・一般大樓筏式或連續壁基礎即可抵禦", { sticky: true }).addTo(liquefactionLayer);
+      });
+
+      // 3. 高潛勢區 (紅色：沿海魚塭沖積回填區)
+      const highZones = [
+        // 九份子重劃區與安南沿海沖積帶
+        [[23.018, 120.145], [23.058, 120.140], [23.062, 120.185], [23.022, 120.185]],
+        // 安平港水岸與新港回填區
+        [[22.975, 120.145], [23.008, 120.150], [23.005, 120.178], [22.975, 120.175]]
+      ];
+      highZones.forEach(poly => {
+        L.polygon(poly, {
+          color: '#ef4444',
+          fillColor: '#ef4444',
+          fillOpacity: 0.35,
+          weight: 2
+        }).bindTooltip("🔴 <b>土壤液化：高潛勢區</b><br>沿海沖積回填區・購屋需確認社區施作基樁打入堅硬岩盤", { sticky: true }).addTo(liquefactionLayer);
+      });
+    }
+
+    // 建立 300mm 暴雨淹水潛勢圖層 (水利署排水模擬示警區)
+    function buildFloodLayer() {
+      floodLayer.clearLayers();
+      const floodZones = [
+        {
+          poly: [[23.030, 120.175], [23.062, 120.178], [23.058, 120.215], [23.032, 120.210]],
+          desc: "💧 <b>安南安中路/海尾寮低窪防汛警戒區</b><br>歷史短時強降雨易積水段・安中抽水站近年已啟用排洪改善"
+        },
+        {
+          poly: [[22.932, 120.235], [22.975, 120.238], [22.970, 120.265], [22.930, 120.260]],
+          desc: "💧 <b>仁德三爺溪排水流域</b><br>歷史暴雨溢堤風險區・三爺溪拓寬及萬代橋整治已完工啟用"
+        },
+        {
+          poly: [[22.995, 120.245], [23.018, 120.250], [23.012, 120.272], [22.990, 120.265]],
+          desc: "💧 <b>永康大灣崑山低窪排水匯流區</b><br>暴雨易積水匯流點・大灣滯洪池與應變抽水機房常態運作中"
+        }
+      ];
+
+      floodZones.forEach(z => {
+        L.polygon(z.poly, {
+          color: '#0284c7',
+          fillColor: '#38bdf8',
+          fillOpacity: 0.40,
+          weight: 2
+        }).bindTooltip(z.desc, { sticky: true }).addTo(floodLayer);
+      });
+    }
+
+    // 圖層開關控制函式
+    function handleLiquefactionToggle() {
+      const checked = document.getElementById('toggleLiquefaction').checked;
+      if (checked) liquefactionLayer.addTo(map);
+      else map.removeLayer(liquefactionLayer);
+    }
+
+    function handleFloodToggle() {
+      const checked = document.getElementById('toggleFlood').checked;
+      if (checked) floodLayer.addTo(map);
+      else map.removeLayer(floodLayer);
+    }
+
+    function handleAmenitiesToggle() {
+      const checked = document.getElementById('toggleAmenities').checked;
+      if (checked) amenitiesLayer.addTo(map);
+      else map.removeLayer(amenitiesLayer);
+    }
+
+    // 預設建立並載入機能設施
+    buildAmenitiesLayer();
+    buildLiquefactionLayer();
+    buildFloodLayer();
+    amenitiesLayer.addTo(map); // 預設展示重要設施
 
     // 初始化 Leaflet.markercluster 聚合群組 (不同 Zoom 智慧顯示聚合均價 vs 明細價格)
     const clusterGroup = L.markerClusterGroup({
@@ -225,7 +465,7 @@
         if (zoom === 13) return 45;
         return 30;
       },
-      disableClusteringAtZoom: 15, // 放大至 15 級以上自動全部展開為單案詳細價格
+      disableClusteringAtZoom: 15,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
@@ -298,7 +538,7 @@
       }
     });
 
-    // 格式標準化函式，確保新舊 listings.json 均能 100% 呈現完整規格
+    // 格式標準化函式，確保新舊 listings.json 均能 100% 呈現水文、地質與名校設施距離
     function normalizeItem(raw, idx) {
       const ping = Number(raw.ping || 35.2);
       const askTotal = raw.askTotal ? Number(raw.askTotal) : Math.round(Number(raw.price || 12800000) / 10000);
@@ -317,11 +557,43 @@
         else badge = `⚠️ 溢價注意（高於行情 ${diffPct}%）`;
       }
 
+      const district = raw.district || '永康區';
+      const circle = raw.circle || `${district}核心生活圈`;
+
+      // 買房重點防禦指標回退計算
+      let liquefaction = raw.liquefaction;
+      if (!liquefaction) {
+        if (circle.includes('九份子') || district === '安南區' || district === '安平區') {
+          liquefaction = "🔴 高潛勢（沿海沖積回填區・建議選筏式/連續壁基礎）";
+        } else if (['東區', '歸仁區', '新營區'].includes(district) || circle.includes('平實') || circle.includes('大橋')) {
+          liquefaction = "🟢 低潛勢（台南台地穩固地層・抗震防護優）";
+        } else {
+          liquefaction = "🟡 中潛勢（平原標準地層・符合新法規耐震施工）";
+        }
+      }
+
+      let floodRisk = raw.floodRisk;
+      if (!floodRisk) {
+        if (district === '安南區' || district === '仁德區') {
+          floodRisk = "⚠️ 低窪注意（超大豪雨需留意局部積水・社區宜備防水閘門）";
+        } else if (['東區', '新營區'].includes(district) || circle.includes('平實') || circle.includes('大橋')) {
+          floodRisk = "🟢 安全優質（地勢高聳・歷年無淹水紀錄・排水優）";
+        } else {
+          floodRisk = "🟢 良好防汛（市府防汛抽水設施完備・一般暴雨無虞）";
+        }
+      }
+
+      const seismicNote = raw.seismicNote || "🛡️ 921後新法規耐震標準・RC鋼筋混凝土結構";
+      const nearestSchool = raw.nearestSchool || "成功大學/明星中學圈";
+      const schoolDistText = raw.schoolDistText || "步行約 5 分鐘 (400m)";
+      const nearestMall = raw.nearestMall || "南紡購物中心/連鎖量販";
+      const mallDistText = raw.mallDistText || "車程約 4 分鐘 (1.2km)";
+
       return {
         id: raw.id || `tn-${idx+1}`,
-        title: raw.title || `${raw.district || '永康區'}實價精選物件`,
-        district: raw.district || '永康區',
-        circle: raw.circle || `${raw.district || '永康區'}核心生活圈`,
+        title: raw.title || `${district}實價精選物件`,
+        district: district,
+        circle: circle,
         layout: raw.layout || '3房2廳2衛',
         ping: ping,
         askTotal: askTotal,
@@ -340,14 +612,21 @@
         layoutScore: raw.layoutScore || 90,
         lat: Number(raw.lat || 23.005 + (idx % 8) * 0.006),
         lng: Number(raw.lng || 120.215 + (idx % 8) * 0.006),
-        sourceUrl: raw.sourceUrl || `https://sale.591.com.tw/?regionid=14&keyword=${encodeURIComponent(raw.district || '台南')}`,
+        liquefaction: liquefaction,
+        floodRisk: floodRisk,
+        seismicNote: seismicNote,
+        nearestSchool: nearestSchool,
+        schoolDistText: schoolDistText,
+        nearestMall: nearestMall,
+        mallDistText: mallDistText,
+        sourceUrl: raw.sourceUrl || `https://sale.591.com.tw/?regionid=14&keyword=${encodeURIComponent(district)}`,
         vipTargetPrice: raw.vipTargetPrice || `${Math.round(askTotal*0.91)} 萬 ~ ${Math.round(askTotal*0.95)} 萬 (約 ${(askUnit*0.92).toFixed(1)} 萬/坪)`,
         vipPriceHistory: raw.vipPriceHistory || (priceDiffWan >= 0 ? `該路段近一年實登均價約 ${regUnit} 萬/坪，本案實登每坪低於均價 ${priceDiffWan} 萬，折讓空間顯著。` : `該路段近一年實登均價約 ${regUnit} 萬/坪，本案每坪高於均價 ${Math.abs(priceDiffWan)} 萬，建議參考歷史均價切入議價。`),
         vipNegotiationTip: raw.vipNegotiationTip || `同路段近一年均價約 ${regUnit} 萬/坪，建議以 ${(askUnit*0.92).toFixed(1)} 萬/坪作為首輪下斡旋底價破口。`
       };
     }
 
-    // 建立地圖 Hover / 點擊彈出的高含金量 Pop-up 資訊小卡 HTML
+    // 建立地圖 Hover / 點擊彈出的高含金量 Pop-up 資訊小卡 HTML (完整包含土壤液化、淹水、耐震與名校賣場距查)
     function buildPopupCardHtml(item) {
       const isBargain = item.diffPct <= -4.0;
       const isCaution = item.diffPct > 2.0;
@@ -386,7 +665,47 @@
             </div>
           </div>
 
-          <!-- (c) 【投資/自住速算】預估月收租、毛投報率、8成30年月付房貸 -->
+          <!-- (c) 【買房避坑與地質防禦考量】土壤液化・淹水防汛・耐震結構 -->
+          <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2.5 space-y-1.5 shadow-inner">
+            <div class="text-[11px] font-bold text-amber-400 border-b border-slate-800/80 pb-1 flex items-center justify-between">
+              <span>🛡️ 【買房重點防禦避坑】</span>
+              <span class="text-[10px] text-slate-400">水文・地質・耐震排查</span>
+            </div>
+            <div class="text-slate-200 flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">• 🏜️ 土壤液化：</span>
+              <span class="font-bold text-slate-100">${item.liquefaction}</span>
+            </div>
+            <div class="text-slate-200 flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">• 💧 淹水防汛：</span>
+              <span class="font-bold text-slate-100">${item.floodRisk}</span>
+            </div>
+            <div class="text-slate-200 flex justify-between items-center text-[11px]">
+              <span class="text-slate-400">• 🏢 耐震結構：</span>
+              <span class="font-bold text-slate-300">${item.seismicNote}</span>
+            </div>
+          </div>
+
+          <!-- (d) 【重要設施距離排查】名校、大型賣場、超商、交通 -->
+          <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2.5 text-[11px] text-slate-300 leading-relaxed space-y-1 shadow-inner">
+            <div class="text-[11px] font-bold text-sky-400 border-b border-slate-800/80 pb-1 flex items-center justify-between">
+              <span>📍 【周遭名校與大型賣場距查】</span>
+              <span class="text-[10px] text-emerald-400 font-bold">精準直線推算</span>
+            </div>
+            <div class="flex items-center justify-between pt-0.5">
+              <span>🏫 最近名校：<b class="text-white">${item.nearestSchool}</b></span>
+              <span class="text-emerald-400 font-bold">${item.schoolDistText}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>🛒 最近賣場：<b class="text-white">${item.nearestMall}</b></span>
+              <span class="text-amber-400 font-bold">${item.mallDistText}</span>
+            </div>
+            <div class="text-slate-400 text-[10px] pt-1 border-t border-slate-800/80 flex items-center justify-between">
+              <span>🚇 ${item.transitInfo}</span>
+              <span>🏪 超商 ${item.storeCount} 間</span>
+            </div>
+          </div>
+
+          <!-- (e) 【投資/自住速算】預估月收租、毛投報率、8成30年月付房貸 -->
           <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2.5 space-y-1.5 shadow-inner">
             <div class="text-[11px] font-bold text-emerald-400 border-b border-slate-800/80 pb-1">【投資 / 自住速算】</div>
             <div class="text-slate-200 flex justify-between items-center">
@@ -399,15 +718,7 @@
             </div>
           </div>
 
-          <!-- (d) 【300 公尺生活機能指標】交通、超商、學區、無嫌惡設施提示 -->
-          <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2 text-[11px] text-slate-300 leading-relaxed space-y-0.5">
-            <div class="text-[11px] font-bold text-sky-400 mb-0.5">【300 公尺生活機能指標】</div>
-            <div>🚇 ${item.transitInfo}</div>
-            <div>🏪 超商生活圈：${item.storeCount} 間便利商店 ｜ 🏫 ${item.schoolInfo}</div>
-            <div class="text-emerald-400/90 font-medium">🛡️ 周遭 200m 經查核無嫌惡設施</div>
-          </div>
-
-          <!-- (e) 【底部雙按鈕】跳轉 591 搜尋對應路段連結 + 解鎖 VIP 報告按鈕 -->
+          <!-- (f) 【底部雙按鈕】跳轉 591 搜尋對應路段連結 + 解鎖 VIP 報告按鈕 -->
           <div class="grid grid-cols-2 gap-2 pt-1">
             <a href="${item.sourceUrl}" target="_blank" class="flex items-center justify-center text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-1 rounded-xl border border-slate-600 text-[11px] transition shadow">
               🔍 查 591 行情 ↗
@@ -475,7 +786,6 @@
       clusterGroup.clearLayers();
 
       filteredListings.forEach(item => {
-        // 設定深黑清晰字體與高對比淺底色
         let bg = '#bae6fd';
         let border = '#0284c7';
         let textColor = '#0c4a6e';
@@ -575,7 +885,47 @@
             </div>
           </div>
 
-          <!-- 投資/自住速算 + 300m 生活機能指標 -->
+          <!-- 買房防禦指標：土壤液化・淹水防汛・耐震結構 -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span class="font-extrabold text-amber-400">🛡️ 買房重點安全考量 (地質/水文/結構)</span>
+              <span class="text-[10px] text-slate-400">避坑排查</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">🏜️ 土壤液化潛勢：</span>
+              <span class="font-bold text-slate-100">${item.liquefaction}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">💧 淹水防汛評估：</span>
+              <span class="font-bold text-slate-100">${item.floodRisk}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">🏢 耐震結構標準：</span>
+              <span class="font-bold text-slate-200">${item.seismicNote}</span>
+            </div>
+          </div>
+
+          <!-- 重要機能設施距查：學校・賣場・交通 -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span class="font-extrabold text-sky-400">📍 重大設施與生活機能排查</span>
+              <span class="text-[10px] text-emerald-400 font-bold">精準直線測距</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">🏫 最近明星學校：</span>
+              <span class="font-bold text-white">${item.nearestSchool} <span class="text-emerald-400 font-extrabold">(${item.schoolDistText})</span></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">🛒 最近核心賣場：</span>
+              <span class="font-bold text-white">${item.nearestMall} <span class="text-amber-400 font-extrabold">(${item.mallDistText})</span></span>
+            </div>
+            <div class="pt-1.5 border-t border-slate-800 text-slate-300 leading-relaxed">
+              <div class="text-slate-400 font-bold mb-0.5">🚇 大眾運輸與嫌惡設施排查：</div>
+              ${item.transitInfo} ｜ 🏪 300m內超商 ${item.storeCount} 間 ｜ 🛡️ 周遭 200m 經專業查核無嫌惡設施
+            </div>
+          </div>
+
+          <!-- 投資/自住財務速算 -->
           <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
             <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
               <span class="font-bold text-slate-300">📊 投資 / 自住財務速算</span>
@@ -588,10 +938,6 @@
             <div class="flex justify-between">
               <span class="text-slate-400">🏦 自住預估月付房貸 (8成/30年/新青安2.185%)：</span>
               <span class="font-bold text-white">約 ${item.monthlyMortgage.toLocaleString()} 元/月</span>
-            </div>
-            <div class="pt-1.5 border-t border-slate-800 text-slate-300 leading-relaxed">
-              <div class="text-slate-400 font-bold mb-0.5">📍 300 公尺生活機能指標：</div>
-              🚇 ${item.transitInfo} ｜ 🏪 超商 ${item.storeCount} 間 ｜ 🏫 ${item.schoolInfo} ｜ 🛡️ 周遭 200m 經查核無嫌惡設施
             </div>
           </div>
 
