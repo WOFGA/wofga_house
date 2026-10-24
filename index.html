@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wofga_house｜台南房產 AI 投資雷達與實價登錄折溢價地圖</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
+  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+  <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -258,7 +263,7 @@
       
       <!-- 圖層開關浮動控制台 (右上角) -->
       <div class="absolute top-4 right-4 z-20 flex flex-col gap-2">
-        <div class="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-2xl p-3 shadow-2xl text-xs space-y-2.5 min-w-[230px]">
+        <div class="bg-slate-900/95 border border-slate-700/80 rounded-2xl p-3 shadow-2xl text-xs space-y-2.5 min-w-[230px]">
           <div class="font-extrabold text-slate-200 border-b border-slate-800 pb-1.5 flex items-center justify-between">
             <span class="flex items-center gap-1.5">🗺️ <span>地圖圖層開關</span></span>
             <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">100% 官方正版</span>
@@ -329,7 +334,7 @@
       </div>
 
       <!-- 地圖圖例與多層級縮放導引 (左下角) -->
-      <div class="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl max-w-xs">
+      <div class="absolute bottom-4 left-4 z-20 bg-slate-900/95 border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl max-w-xs">
         <div class="font-bold text-slate-200 flex items-center justify-between">
           <span>📍 實價登錄折溢價雷達</span>
           <span id="zoomModeBadge" class="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold">區域聚合中</span>
@@ -415,6 +420,9 @@
     const map = L.map('map', { minZoom: 10, maxZoom: 19 }).setView([23.005, 120.215], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      keepBuffer: 3,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
@@ -975,7 +983,7 @@
 
         const marker = L.marker([item.lat, item.lng], { icon });
         marker.itemData = item;
-        marker.bindPopup(buildPopupCardHtml(item), { maxWidth: 350, autoPan: true });
+        marker.bindPopup(() => buildPopupCardHtml(item), { maxWidth: 350, autoPan: true });
 
         marker.on('mouseover', function () {
           clearTimeout(popupCloseTimer);
@@ -1285,8 +1293,8 @@
     async function fetchListings() {
       try {
         const [resReg, resOnsale] = await Promise.all([
-          fetch('listings.json?t=' + new Date().getTime()),
-          fetch('listings_onsale.json?t=' + new Date().getTime()).catch(() => null)
+          fetch('listings.json', { cache: 'no-cache' }),
+          fetch('listings_onsale.json', { cache: 'no-cache' }).catch(() => null)
         ]);
 
         const rawData = await resReg.json();
@@ -1378,7 +1386,7 @@
 
         const marker = L.marker([item.lat, item.lng], { icon });
         marker.itemData = item; // 供 Cluster 聚合計算平均價格
-        marker.bindPopup(buildPopupCardHtml(item), { maxWidth: 340, autoPan: true });
+        marker.bindPopup(() => buildPopupCardHtml(item), { maxWidth: 340, autoPan: true });
 
         // 滑鼠移入 (Hover) 自動彈出 Pop-up 資訊小卡
         marker.on('mouseover', function () {
