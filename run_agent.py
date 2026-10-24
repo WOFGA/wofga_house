@@ -40,7 +40,7 @@ print(f"成功載入全部資料總筆數：{len(full_df)}")
 listings = []
 
 # 為了避免網頁載入過多卡片過載，我們預設取前 100 筆或全部有經緯度/價格的資料
-target_df = full_df.head(100) 
+target_df = full_df
 
 for idx, row in target_df.iterrows():
     district = str(row.get('鄉鎮市區', '安平區'))
