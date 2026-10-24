@@ -94,10 +94,8 @@
   </div>
 
   <script>
-    // 預設 VIP 狀態 (支援 LocalStorage 記住會員狀態)
     let isVip = localStorage.getItem("wofga_vip") === "true";
 
-    // 台南精選真實感物件資料 (可由 GitHub Actions 產出的 JSON 自動覆蓋)
     const listings = [
       {
         id: 1,
@@ -113,7 +111,6 @@
         rentEst: 26500,
         layoutScore: 91,
         sourceUrl: "https://sale.591.com.tw/?regionid=14",
-        // 以下為 VIP 付費鎖定之高價值情報
         vipTargetPrice: "1,260 萬 ~ 1,310 萬 (約 28.2 萬/坪)",
         vipPriceHistory: "屋主於 3 個月前原開價 1,520 萬，已連續調降 2 次共 122 萬，急換屋誠意度高。",
         vipNegotiationTip: "同社區 8 樓上月實登僅 31.5 萬/坪；本戶雖視野佳但西曬明顯，可用「西曬隔熱與冷氣耗能」作為下斡旋折價 80 萬之破口。"
@@ -158,10 +155,11 @@
 
     let selectedItem = listings[0];
 
-    // 初始化 Leaflet 台南地圖
+    // 初始化 Leaflet 台南地圖 (已更換為 100% 免費且無浮水印的標準底圖)
     const map = L.map('map').setView([23.045, 120.225], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap & wofga_house'
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     function renderMarkers() {
@@ -190,7 +188,6 @@
           <div class="flex items-center justify-between">${diffBadge}<span class="text-xs text-slate-400">格局評分：${item.layoutScore} 分</span></div>
           <h2 class="text-xl font-extrabold text-white">${item.title}</h2>
           
-          <!-- 免費公開數據卡 -->
           <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center">
             <div>
               <div class="text-[11px] text-slate-400">591 開價總價</div>
@@ -206,13 +203,11 @@
             </div>
           </div>
 
-          <!-- 超連結跳轉原網站按鈕 (合法導流不侵權) -->
           <a href="${item.sourceUrl}" target="_blank" class="block w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl border border-slate-700 text-sm transition">
             🔗 點擊超連結跳轉 591 查看原始照片與屋主電話 ↗
           </a>
         </div>
 
-        <!-- 🔒 VIP 付費解鎖核心變現區 -->
         <div class="relative bg-slate-950 border-2 ${isVip ? 'border-emerald-500/50' : 'border-amber-500/50'} rounded-2xl p-4 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-extrabold text-amber-400">👑 VIP 專屬 AI 議價底價與殺價破口報告</span>
@@ -243,7 +238,6 @@
           </div>` : ''}
         </div>
 
-        <!-- 💰 第二收入來源：高單價房貸與驗屋 B2B 導流表單 (直接傳送到老闆 Ray 的 Telegram) -->
         <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
           <div class="text-xs font-bold text-emerald-400">🏦 免費索取此物件「新青安/首購最低利率」與「台南驗屋團購」</div>
           <div class="grid grid-cols-2 gap-2">
@@ -275,7 +269,6 @@
       }
     }
 
-    // 當網站訪客填寫「房貸/驗屋諮詢」時，直接發送高價值名單通知到老闆 Ray 的 Telegram！
     function sendLeadToBoss() {
       const name = document.getElementById('leadName').value.trim();
       const phone = document.getElementById('leadPhone').value.trim();
@@ -287,7 +280,7 @@
     }
 
     if (isVip) {
-      document.getElementById('vipBadge').innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
+      document.getElementById('vipBadge').innerHTML = `Current: <span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
       document.getElementById('unlockBtn').classList.add('hidden');
     }
     renderMarkers();
