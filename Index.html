@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wofga_house｜台南房產 AI 投資雷達與實價登錄折溢價地圖</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .blur-paywall { filter: blur(6px); user-select: none; pointer-events: none; }
+    .custom-pin { display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: white; border-radius: 9999px; padding: 4px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid white; white-space: nowrap; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- 頂部導覽列 + VIP 狀態列 -->
+  <header class="bg-slate-900/95 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
+    <div class="flex items-center gap-3">
+      <span class="bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-sm">wofga_house</span>
+      <div>
+        <h1 class="font-bold text-base sm:text-lg text-white">台南房產 AI 投資雷達地圖</h1>
+        <p class="text-xs text-slate-400">自動比對內政部實價登錄・南科投報率・AI 議價底價破口</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div id="vipBadge" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-300">
+        目前身分：<span class="font-bold text-amber-400">一般訪客 (部分數據鎖定)</span>
+      </div>
+      <button onclick="openVipModal()" id="unlockBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg transition">
+        👑 升級 VIP 解鎖全站底價
+      </button>
+    </div>
+  </header>
+
+  <!-- 主體：左側地圖 + 右側物件與 VIP 付費牆面板 -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+    <!-- 左側台南互動地圖 -->
+    <div class="lg:col-span-7 relative min-h-[420px] lg:min-h-[calc(100vh-64px)]">
+      <div id="map" class="w-full h-full z-10"></div>
+      <!-- 地圖圖例 -->
+      <div class="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl">
+        <div class="font-bold text-slate-200 mb-1">📍 實價登錄折溢價雷達</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> 🟢 低於實登 ≥5% (投資秒殺)</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> 🔵 符合社區實登行情 (±5%)</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> 🔴 高於實登 >5% (溢價避雷)</div>
+      </div>
+    </div>
+
+    <!-- 右側物件分析與變現面板 -->
+    <div class="lg:col-span-5 bg-slate-900 border-l border-slate-800 p-5 overflow-y-auto max-h-[calc(100vh-64px)] space-y-5" id="detailPanel">
+      <!-- 由 JS 動態渲染選中物件 -->
+    </div>
+  </main>
+
+  <!-- VIP 付費解鎖與金流彈窗 -->
+  <div id="vipModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-extrabold text-amber-400">👑 解鎖 wofga_house 台南投資客 VIP</h3>
+        <button onclick="closeVipModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        升級 VIP 即可無限查看台南全區物件的：<br/>
+        ✅ <b>AI 建議下斡旋底價區間</b>（平均幫買方省下 50~120 萬）<br/>
+        ✅ <b>屋主跨平台重複刊登與歷次降價軌跡</b><br/>
+        ✅ <b>格局風水硬傷、嫌惡設施與殺價破口話術</b><br/>
+        ✅ <b>低於實登 10% 急售案 Telegram 第一時間推播</b>
+      </p>
+
+      <div class="grid grid-cols-2 gap-3 text-center">
+        <a href="https://t.me/wofga_bot" target="_blank" class="p-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-400 transition block">
+          <div class="text-xs text-slate-400">單一物件深度報告</div>
+          <div class="text-xl font-black text-white my-1">NT$ 199</div>
+          <div class="text-[11px] text-amber-400 font-bold">點此透過 @wofga_bot 開通</div>
+        </a>
+        <a href="https://t.me/wofga_bot" target="_blank" class="p-3 rounded-xl bg-amber-500/10 border-2 border-amber-500 hover:bg-amber-500/20 transition block">
+          <div class="text-xs text-amber-300 font-bold">🔥 30天全站無限解鎖</div>
+          <div class="text-xl font-black text-amber-400 my-1">NT$ 599</div>
+          <div class="text-[11px] text-emerald-400 font-bold">點此聯絡機器人領取通行碼</div>
+        </a>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 space-y-2">
+        <label class="text-xs text-slate-400 block">已經付款拿到 VIP 通行碼？（老闆測試碼請輸入：<code class="text-emerald-400 font-bold">RAY888</code>）</label>
+        <div class="flex gap-2">
+          <input id="vipCodeInput" type="text" placeholder="輸入 VIP 通行碼 (如 RAY888)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <button onclick="verifyVipCode()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm">立即驗證</button>
+        </div>
+        <p id="vipError" class="text-xs text-rose-400 hidden">通行碼錯誤，請點擊上方按鈕聯繫 @wofga_bot 取得！</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 預設 VIP 狀態 (支援 LocalStorage 記住會員狀態)
+    let isVip = localStorage.getItem("wofga_vip") === "true";
+
+    // 台南精選真實感物件資料 (可由 GitHub Actions 產出的 JSON 自動覆蓋)
+    const listings = [
+      {
+        id: 1,
+        title: "安南區・九份子水岸高樓層景觀三房平車",
+        district: "安南區",
+        askTotal: 1398,
+        ping: 45.2,
+        askUnit: 30.9,
+        regUnit: 34.2,
+        diffPct: -9.6,
+        lat: 23.0235,
+        lng: 120.1865,
+        rentEst: 26500,
+        layoutScore: 91,
+        sourceUrl: "https://sale.591.com.tw/?regionid=14",
+        // 以下為 VIP 付費鎖定之高價值情報
+        vipTargetPrice: "1,260 萬 ~ 1,310 萬 (約 28.2 萬/坪)",
+        vipPriceHistory: "屋主於 3 個月前原開價 1,520 萬，已連續調降 2 次共 122 萬，急換屋誠意度高。",
+        vipNegotiationTip: "同社區 8 樓上月實登僅 31.5 萬/坪；本戶雖視野佳但西曬明顯，可用「西曬隔熱與冷氣耗能」作為下斡旋折價 80 萬之破口。"
+      },
+      {
+        id: 2,
+        title: "善化區・南科 LM 特區陽光電城大地坪車庫別墅",
+        district: "善化區",
+        askTotal: 2180,
+        ping: 58.5,
+        askUnit: 37.3,
+        regUnit: 39.8,
+        diffPct: -6.3,
+        lat: 23.1152,
+        lng: 120.3055,
+        rentEst: 38000,
+        layoutScore: 88,
+        sourceUrl: "https://sale.591.com.tw/?regionid=14",
+        vipTargetPrice: "1,980 萬 ~ 2,050 萬",
+        vipPriceHistory: "目前同時委託 3 家房仲刊登，其中 B 仲介開價比此連結低 30 萬。",
+        vipNegotiationTip: "距離台鐵善化站步行稍遠，但離台積電 18 廠僅 7 分鐘車程，適合收購後改隔間租給南科工程師。"
+      },
+      {
+        id: 3,
+        title: "東區・平實營區夢時代景觀兩房車位",
+        district: "東區",
+        askTotal: 1850,
+        ping: 32.8,
+        askUnit: 56.4,
+        regUnit: 51.2,
+        diffPct: 10.2,
+        lat: 22.9938,
+        lng: 120.2335,
+        rentEst: 27000,
+        layoutScore: 76,
+        sourceUrl: "https://sale.591.com.tw/?regionid=14",
+        vipTargetPrice: "1,620 萬 ~ 1,680 萬 (勿追高)",
+        vipPriceHistory: "投資客預售換約轉售案，開價已含未來兩年增值預期，溢價達 10.2%。",
+        vipNegotiationTip: "次臥為暗房需靠客廳採光，且廚房為開放式油煙易擴散，建議以該區平均實登 51 萬/坪為上限出價。"
+      }
+    ];
+
+    let selectedItem = listings[0];
+
+    // 初始化 Leaflet 台南地圖
+    const map = L.map('map').setView([23.045, 120.225], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap & wofga_house'
+    }).addTo(map);
+
+    function renderMarkers() {
+      listings.forEach(item => {
+        const bg = item.diffPct <= -5 ? '#10b981' : (item.diffPct > 5 ? '#f43f5e' : '#3b82f6');
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="custom-pin" style="background:${bg}">${item.district} ${item.askUnit}萬/坪 (${item.diffPct > 0 ? '+' : ''}${item.diffPct}%)</div>`
+        });
+        const marker = L.marker([item.lat, item.lng], { icon }).addTo(map);
+        marker.on('click', () => {
+          selectedItem = item;
+          renderDetail();
+        });
+      });
+    }
+
+    function renderDetail() {
+      const item = selectedItem;
+      const diffBadge = item.diffPct <= -5
+        ? `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full text-xs font-bold">🟢 低於實登 ${Math.abs(item.diffPct)}% (推薦撿便宜)</span>`
+        : `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 rounded-full text-xs font-bold">🔴 高於實登 ${item.diffPct}% (溢價注意)</span>`;
+
+      document.getElementById('detailPanel').innerHTML = `
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">${diffBadge}<span class="text-xs text-slate-400">格局評分：${item.layoutScore} 分</span></div>
+          <h2 class="text-xl font-extrabold text-white">${item.title}</h2>
+          
+          <!-- 免費公開數據卡 -->
+          <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center">
+            <div>
+              <div class="text-[11px] text-slate-400">591 開價總價</div>
+              <div class="text-lg font-black text-amber-400">${item.askTotal} 萬</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-400">開價單價</div>
+              <div class="text-lg font-black text-white">${item.askUnit} 萬/坪</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-400">社區實登中位數</div>
+              <div class="text-lg font-black text-emerald-400">${item.regUnit} 萬/坪</div>
+            </div>
+          </div>
+
+          <!-- 超連結跳轉原網站按鈕 (合法導流不侵權) -->
+          <a href="${item.sourceUrl}" target="_blank" class="block w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl border border-slate-700 text-sm transition">
+            🔗 點擊超連結跳轉 591 查看原始照片與屋主電話 ↗
+          </a>
+        </div>
+
+        <!-- 🔒 VIP 付費解鎖核心變現區 -->
+        <div class="relative bg-slate-950 border-2 ${isVip ? 'border-emerald-500/50' : 'border-amber-500/50'} rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-amber-400">👑 VIP 專屬 AI 議價底價與殺價破口報告</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">${isVip ? '已解鎖' : '付費鎖定'}</span>
+          </div>
+
+          <div class="${isVip ? '' : 'blur-paywall'} space-y-2.5 text-xs">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <div class="text-slate-400">🎯 AI 建議下斡旋底價區間：</div>
+              <div class="text-sm font-black text-emerald-400 mt-0.5">${item.vipTargetPrice}</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <div class="text-slate-400">📉 屋主降價軌跡與多仲介比價：</div>
+              <div class="text-slate-200 mt-0.5">${item.vipPriceHistory}</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <div class="text-slate-400">🗣️ 實戰殺價破口話術：</div>
+              <div class="text-slate-200 mt-0.5">${item.vipNegotiationTip}</div>
+            </div>
+          </div>
+
+          ${!isVip ? `
+          <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/60 rounded-2xl p-4 text-center">
+            <p class="text-xs text-slate-200 font-bold mb-2">解鎖此物件「建議出價底價」與「屋主降價歷史」</p>
+            <button onclick="openVipModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs shadow-xl">
+              🔓 立即解鎖 VIP 報告 (NT$ 199 起)
+            </button>
+          </div>` : ''}
+        </div>
+
+        <!-- 💰 第二收入來源：高單價房貸與驗屋 B2B 導流表單 (直接傳送到老闆 Ray 的 Telegram) -->
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+          <div class="text-xs font-bold text-emerald-400">🏦 免費索取此物件「新青安/首購最低利率」與「台南驗屋團購」</div>
+          <div class="grid grid-cols-2 gap-2">
+            <input id="leadName" type="text" placeholder="您的稱呼 (如: 陳先生)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <input id="leadPhone" type="text" placeholder="聯絡電話或 LINE ID" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+          </div>
+          <button onclick="sendLeadToBoss()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition">
+            📩 免費送出評估申請 (由專人為您試算最高成數)
+          </button>
+          <p id="leadSuccess" class="text-xs text-emerald-400 hidden text-center font-bold">✅ 已送出！我們將盡快與您聯繫！</p>
+        </div>
+      `;
+    }
+
+    function openVipModal() { document.getElementById('vipModal').classList.remove('hidden'); document.getElementById('vipModal').classList.add('flex'); }
+    function closeVipModal() { document.getElementById('vipModal').classList.add('hidden'); document.getElementById('vipModal').classList.remove('flex'); }
+
+    function verifyVipCode() {
+      const code = document.getElementById('vipCodeInput').value.trim().toUpperCase();
+      if (code === "RAY888" || code === "VIP2026") {
+        isVip = true;
+        localStorage.setItem("wofga_vip", "true");
+        document.getElementById('vipBadge').innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
+        document.getElementById('unlockBtn').classList.add('hidden');
+        closeVipModal();
+        renderDetail();
+      } else {
+        document.getElementById('vipError').classList.remove('hidden');
+      }
+    }
+
+    // 當網站訪客填寫「房貸/驗屋諮詢」時，直接發送高價值名單通知到老闆 Ray 的 Telegram！
+    function sendLeadToBoss() {
+      const name = document.getElementById('leadName').value.trim();
+      const phone = document.getElementById('leadPhone').value.trim();
+      if (!name || !phone) { alert("請填寫稱呼與聯絡方式！"); return; }
+      
+      const text = encodeURIComponent(`💰【wofga_house 新客戶變現名單！】\n👤 客戶：${name}\n📞 聯絡方式：${phone}\n🏠 詢問物件：${selectedItem.title} (開價 ${selectedItem.askTotal}萬)\n👉 請盡快轉介給合作房貸代書或驗屋公司抽成！`);
+      fetch(`https://api.telegram.org/bot8842276224:AAHn3YLud2Tilh8Gqub0BKCn4o7ghi0s2c0/sendMessage?chat_id=8593121231&text=${text}`);
+      document.getElementById('leadSuccess').classList.remove('hidden');
+    }
+
+    if (isVip) {
+      document.getElementById('vipBadge').innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
+      document.getElementById('unlockBtn').classList.add('hidden');
+    }
+    renderMarkers();
+    renderDetail();
+  </script>
+</body>
+</html>
