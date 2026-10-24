@@ -4,22 +4,16 @@ import json
 import pandas as pd
 from google import genai
 
-# 1. 直接讀取你上傳到 GitHub 根目錄的本地 ZIP 檔案
+# 1. 讀取本地上傳的 ZIP 檔案
 zip_path = "lvr_landcsv.zip"
 print(f"正在讀取本地壓縮檔：{zip_path}")
 
 with zipfile.ZipFile(zip_path, 'r') as z:
-    # 自動尋找壓縮檔中的 CSV 檔案（優先尋找台南市代號 d 開頭的檔案）
     csv_filename = None
     for filename in z.namelist():
-        if 'd_' in filename.lower() and filename.endswith('.csv'):
+        if filename.endswith('.csv'):
             csv_filename = filename
             break
-    if not csv_filename:
-        for filename in z.namelist():
-            if filename.endswith('.csv'):
-                csv_filename = filename
-                break
 
     print(f"成功找到目標 CSV 檔案：{csv_filename}")
     with z.open(csv_filename) as f:
@@ -30,14 +24,30 @@ with zipfile.ZipFile(zip_path, 'r') as z:
 
 print(f"成功載入資料總筆數：{len(df)}")
 
-# 2. 取出前 5 筆資料並整理格式寫入 listings.json（供前端網頁與 Git Push 使用）
+# 2. 排除內政部 CSV 常見的第二列英文說明行（如果存在）
+if len(df) > 0 and str(df.iloc[0].values).find('area') != -1 or 'building' in str(df.columns).lower():
+    # 檢查第一列是否為英文說明
+    first_val = str(df.iloc[0, 0])
+    if 'area' in first_val or '1.' in first_val or '建物' not in first_val and not first_val.replace('.','',1).isdigit():
+        df = df.iloc[1:].reset_index(drop=True)
+
 sample_df = df.head(5)
 listings = []
+
 for idx, row in sample_df.iterrows():
-    # 兼容內政部常見欄位名稱
     district = str(row.get('鄉鎮市區', '安平區'))
-    pings = float(row.get('建物移轉總面積平方公尺', 100)) / 3.3058  # 平方公尺轉坪
-    total_price = int(row.get('總價元', row.get('總價', 10000000)))
+    
+    # 安全轉換數值，避免字串轉浮點數失敗
+    try:
+        pings = float(row.get('建物移轉總面積平方公尺', 100)) / 3.3058
+    except (ValueError, TypeError):
+        pings = 30.0
+
+    try:
+        total_price = int(float(row.get('總價元', row.get('總價', 10000000))))
+    except (ValueError, TypeError):
+        total_price = 10000000
+
     unit_price = int(total_price / pings) if pings > 0 else 300000
     
     listing = {
@@ -48,21 +58,21 @@ for idx, row in sample_df.iterrows():
         "unit_price": unit_price,
         "ping": round(pings, 1),
         "layout": str(row.get('建物型態', '住宅大樓')),
-        "lat": 22.9997,  # 預設台南市中心座標
+        "lat": 22.9997,
         "lng": 120.2270,
-        "description": f"主建物或建物型態：{row.get('建物型態', '')}，移轉面積約 {round(pings, 1)} 坪。",
+        "description": f"建物型態：{row.get('建物型態', '住宅')}，移轉面積約 {round(pings, 1)} 坪。",
         "ai_comment": "由 AI 代理自動從最新實價登錄數據中篩選並分析之優質物件。"
     }
     listings.append(listing)
 
-# 寫入 listings.json 檔案，供後續 git commit / push
+# 寫入 listings.json 檔案
 with open('listings.json', 'w', encoding='utf-8') as jf:
     json.dump(listings, jf, ensure_ascii=False, indent=2)
 print("已成功更新 listings.json 資料庫！")
 
 # 3. 初始化 Gemini AI 進行房市分析日報
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-prompt = f"請根據以下最新實價登錄數據，以專業房地產分析師口吻撰寫一份簡短、精彩的台南房市日報：\n{sample_df.to_string()}"
+prompt = f"請根據以下最新實價登錄數據，以專業房地產分析師口吻撰寫一份簡短、精彩的房市日報：\n{sample_df.to_string()}"
 
 response_ai = client.models.generate_content(
     model='gemini-2.5-flash',
@@ -82,7 +92,7 @@ if telegram_token and telegram_chat_id:
     tg_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
     payload = {
         "chat_id": telegram_chat_id,
-        "text": f"🏠 【台南房產 AI 日報】\n\n{report_text}",
+        "text": f"🏠 【房產 AI 日報】\n\n{report_text}",
         "parse_mode": "Markdown"
     }
     requests.post(tg_url, json=payload)
