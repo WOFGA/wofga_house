@@ -58,6 +58,30 @@
       50% { transform: scale(1.08); }
     }
 
+    /* 批次在售物件常駐標記 (591 / 房仲即時在售) */
+    .pin-onsale {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 900;
+      font-size: 11px;
+      color: #451a03 !important;
+      background: linear-gradient(135deg, #fef08a, #fed7aa);
+      border: 2px solid #ea580c;
+      border-radius: 9999px;
+      padding: 3px 8px;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4), 0 0 0 1.5px #ffffff;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      line-height: 1.2;
+    }
+    .pin-onsale:hover {
+      transform: scale(1.12);
+      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7), 0 0 0 2px #c2410c;
+      z-index: 1000 !important;
+    }
+
     /* 重要設施地標標記 (學校、賣場、醫院、南科園區) */
     .landmark-pin {
       display: inline-flex;
@@ -238,6 +262,20 @@
           <div class="font-extrabold text-slate-200 border-b border-slate-800 pb-1.5 flex items-center justify-between">
             <span class="flex items-center gap-1.5">🗺️ <span>地圖圖層開關</span></span>
             <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">100% 官方正版</span>
+          </div>
+
+          <!-- 591 與各大房仲在售房源圖層開關 (預設勾選開啟) -->
+          <div class="space-y-1 border-b border-slate-800 pb-2">
+            <label class="flex items-center justify-between cursor-pointer group hover:bg-slate-800/60 p-1 rounded-lg transition">
+              <span class="flex items-center gap-2 text-amber-300 font-extrabold group-hover:text-amber-200">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span> 🏷️ 591/房仲在售案件
+              </span>
+              <input type="checkbox" id="toggleOnsale" checked onchange="handleOnsaleToggle()" class="rounded border-slate-600 bg-slate-950 text-amber-500 focus:ring-0 cursor-pointer w-4 h-4" />
+            </label>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 px-1">
+              <span id="onsaleCountBadge">共 37 筆最新在售</span>
+              <span class="text-amber-400 font-bold">附原始 591 超連結 ↗</span>
+            </div>
           </div>
 
           <!-- 經濟部官方土壤液化潛勢圖層開關 (100% 官方 WMTS 圖磚) -->
@@ -853,6 +891,80 @@
     });
     clusterGroup.addTo(map);
 
+    // ==========================================
+    // 591 與各大房仲即時在售房源圖層 (即時在售雷達)
+    // ==========================================
+    let onsaleListings = [];
+    const onsaleLayer = L.layerGroup().addTo(map);
+
+    function handleOnsaleToggle() {
+      const checked = document.getElementById('toggleOnsale').checked;
+      if (checked) {
+        renderOnsaleMarkers();
+        if (!map.hasLayer(onsaleLayer)) onsaleLayer.addTo(map);
+      } else {
+        map.removeLayer(onsaleLayer);
+      }
+    }
+
+    function renderOnsaleMarkers() {
+      onsaleLayer.clearLayers();
+      const toggleEl = document.getElementById('toggleOnsale');
+      if (toggleEl && !toggleEl.checked) return;
+
+      const currentDist = document.getElementById('districtFilter') ? document.getElementById('districtFilter').value : 'ALL';
+      const items = currentDist === 'ALL'
+        ? onsaleListings
+        : onsaleListings.filter(x => x.district === currentDist);
+
+      items.forEach(item => {
+        const isBargain = item.diffPct < 0;
+        const tagBg = isBargain ? '#dcfce7' : '#fef3c7';
+        const tagBorder = isBargain ? '#16a34a' : '#ea580c';
+        const tagText = isBargain ? '#14532d' : '#7c2d12';
+        const prefix = isBargain ? '🔥' : '🏷️';
+        const sign = item.diffPct > 0 ? '+' : '';
+
+        const icon = L.divIcon({
+          className: '',
+          html: `
+            <div class="pin-onsale" style="background:${tagBg}; border-color:${tagBorder}; color:${tagText};">
+              <span>${prefix}</span>
+              <span style="font-weight:900;">${item.district}</span>
+              <span style="font-weight:900;">${item.askTotal}萬</span>
+              <span style="font-size:10px; opacity:0.9;">(${sign}${item.diffPct}%)</span>
+            </div>
+          `,
+          iconAnchor: [55, 14]
+        });
+
+        const marker = L.marker([item.lat, item.lng], { icon });
+        marker.itemData = item;
+        marker.bindPopup(buildPopupCardHtml(item), { maxWidth: 350, autoPan: true });
+
+        marker.on('mouseover', function () {
+          clearTimeout(popupCloseTimer);
+          this.openPopup();
+        });
+
+        marker.on('mouseout', function () {
+          popupCloseTimer = setTimeout(() => {
+            if (!isCursorOnPopup) {
+              marker.closePopup();
+            }
+          }, 250);
+        });
+
+        marker.on('click', function () {
+          selectedItem = item;
+          renderDetail();
+          this.openPopup();
+        });
+
+        onsaleLayer.addLayer(marker);
+      });
+    }
+
     // 監聽縮放等級，動態更新 UI 提示徽章
     map.on('zoomend', function() {
       const z = map.getZoom();
@@ -963,6 +1075,12 @@
 
       return {
         id: raw.id || `tn-${idx+1}`,
+        sourceType: raw.sourceType || 'registration',
+        sourcePlatform: raw.sourcePlatform || (raw.sourceType === '591_active' ? '591房屋交易網' : '內政部實價登錄'),
+        broker: raw.broker || '房仲精選',
+        buildingType: raw.buildingType || '電梯大樓',
+        age: raw.age || '新成屋',
+        floor: raw.floor || '中高樓層',
         title: raw.title || `${district}實價精選物件`,
         district: district,
         circle: circle,
@@ -993,7 +1111,7 @@
         mallDistText: mallDistText,
         transitProject: transitProject,
         rezoningArea: rezoningArea,
-        sourceUrl: raw.sourceUrl || `https://sale.591.com.tw/?regionid=14&keyword=${encodeURIComponent(district)}`,
+        sourceUrl: raw.sourceUrl || `https://sale.591.com.tw/?regionid=15&keyword=${encodeURIComponent(district)}`,
         vipTargetPrice: raw.vipTargetPrice || `${Math.round(askTotal*0.91)} 萬 ~ ${Math.round(askTotal*0.95)} 萬 (約 ${(askUnit*0.92).toFixed(1)} 萬/坪)`,
         vipPriceHistory: raw.vipPriceHistory || (priceDiffWan >= 0 ? `該路段近一年實登均價約 ${regUnit} 萬/坪，本案實登每坪低於均價 ${priceDiffWan} 萬，折讓空間顯著。` : `該路段近一年實登均價約 ${regUnit} 萬/坪，本案每坪高於均價 ${Math.abs(priceDiffWan)} 萬，建議參考歷史均價切入議價。`),
         vipNegotiationTip: raw.vipNegotiationTip || `同路段近一年均價約 ${regUnit} 萬/坪，建議以 ${(askUnit*0.92).toFixed(1)} 萬/坪作為首輪下斡旋底價破口。`
@@ -1102,13 +1220,13 @@
             </div>
           </div>
 
-          <!-- (g) 【底部雙按鈕】跳轉 591 搜尋對應路段連結 + 解鎖 VIP 報告按鈕 -->
+          <!-- (g) 【底部雙按鈕】跳轉 591 原始刊登連結 + 議價報告按鈕 -->
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <a href="${item.sourceUrl}" target="_blank" class="flex items-center justify-center text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-1 rounded-xl border border-slate-600 text-[11px] transition shadow">
-              🔍 查 591 行情 ↗
+            <a href="${item.sourceUrl}" target="_blank" class="flex items-center justify-center text-center ${item.sourceType === '591_active' ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black' : 'bg-slate-800 hover:bg-slate-700 text-white font-bold border border-slate-600'} py-2 px-1 rounded-xl text-[11px] shadow transition">
+              ${item.sourceType === '591_active' ? '🔗 前往 591 詳情頁 ↗' : '🔍 查 591 行情 ↗'}
             </a>
-            <button onclick="selectAndUnlock('${item.id}')" class="flex items-center justify-center text-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-2 px-1 rounded-xl text-[11px] shadow transition">
-              👑 解鎖 VIP 報告
+            <button onclick="selectAndUnlock('${item.id}')" class="flex items-center justify-center text-center ${item.sourceType === '591_active' ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/60 font-bold' : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black'} py-2 px-1 rounded-xl text-[11px] shadow transition">
+              👑 AI 斡旋議價策略
             </button>
           </div>
         </div>
@@ -1116,7 +1234,7 @@
     }
 
     window.selectAndUnlock = function(itemId) {
-      let found = allListings.find(x => String(x.id) === String(itemId));
+      let found = allListings.find(x => String(x.id) === String(itemId)) || onsaleListings.find(x => String(x.id) === String(itemId));
       if (!found && selectedItem && String(selectedItem.id) === String(itemId)) {
         found = selectedItem;
       }
@@ -1131,25 +1249,43 @@
 
     async function fetchListings() {
       try {
-        const res = await fetch('listings.json?t=' + new Date().getTime());
-        const rawData = await res.json();
+        const [resReg, resOnsale] = await Promise.all([
+          fetch('listings.json?t=' + new Date().getTime()),
+          fetch('listings_onsale.json?t=' + new Date().getTime()).catch(() => null)
+        ]);
+
+        const rawData = await resReg.json();
         allListings = rawData.map((r, i) => normalizeItem(r, i));
         filteredListings = [...allListings];
 
+        if (resOnsale && resOnsale.ok) {
+          try {
+            const rawOnsale = await resOnsale.json();
+            onsaleListings = rawOnsale.map((r, i) => normalizeItem(r, i));
+            const badge = document.getElementById('onsaleCountBadge');
+            if (badge) badge.textContent = `共 ${onsaleListings.length} 筆最新在售`;
+          } catch(e) {
+            console.warn("無法載入在售資料", e);
+          }
+        }
+
         // 動態填入行政區下拉選單
-        const districts = [...new Set(allListings.map(x => x.district))];
+        const allDistricts = [...new Set([...allListings.map(x => x.district), ...onsaleListings.map(x => x.district)])];
         const selectEl = document.getElementById('districtFilter');
         selectEl.innerHTML = '<option value="ALL">📍 全台南市 (顯示全部)</option>';
-        districts.forEach(d => {
+        allDistricts.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d;
-          opt.textContent = `📍 ${d} (${allListings.filter(x => x.district === d).length} 筆)`;
+          const regCount = allListings.filter(x => x.district === d).length;
+          const saleCount = onsaleListings.filter(x => x.district === d).length;
+          opt.textContent = `📍 ${d} (實登 ${regCount} 筆 / 在售 ${saleCount} 筆)`;
           selectEl.appendChild(opt);
         });
 
         if (filteredListings.length > 0) {
           selectedItem = filteredListings[0];
           renderMarkers();
+          renderOnsaleMarkers();
           renderDetail();
         }
       } catch (err) {
@@ -1165,6 +1301,7 @@
         // 選擇單一行政區時，直接 Zoom In 到 14 級展開細節
         map.setView([selectedItem.lat, selectedItem.lng], val === 'ALL' ? 12 : 14);
         renderMarkers();
+        renderOnsaleMarkers();
         renderDetail();
       }
     }
@@ -1344,8 +1481,8 @@
             </div>
           </div>
 
-          <a href="${item.sourceUrl}" target="_blank" class="block w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl border border-slate-700 text-sm transition">
-            🔗 點擊前往 591 查看對應路段行情與聯絡屋主 ↗
+          <a href="${item.sourceUrl}" target="_blank" class="block w-full text-center ${item.sourceType === '591_active' ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3' : 'bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5'} rounded-xl border border-slate-700 text-sm transition shadow-lg">
+            ${item.sourceType === '591_active' ? '🔗 前往 591 原始在售案件詳情頁 (查看屋況照片/直接聯絡房仲) ↗' : '🔗 點擊前往 591 查看對應路段行情與聯絡屋主 ↗'}
           </a>
         </div>
 
