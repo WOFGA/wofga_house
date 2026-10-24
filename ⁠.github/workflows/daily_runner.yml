@@ -1,4 +1,4 @@
-name: Tainan Real Estate AI Daily Runner
+name: Tainan Real Estate AI Daily Runner 
 
 on:
   schedule:
