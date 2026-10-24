@@ -892,23 +892,58 @@
     clusterGroup.addTo(map);
 
     // ==========================================
-    // 591 與各大房仲即時在售房源圖層 (即時在售雷達)
+    // 591 與各大房仲即時在售房源圖層 (即時在售雷達，支援聚合與單案展開)
     // ==========================================
     let onsaleListings = [];
-    const onsaleLayer = L.layerGroup().addTo(map);
+    const onsaleClusterGroup = L.markerClusterGroup({
+      maxClusterRadius: function(zoom) {
+        if (zoom <= 11) return 80;
+        if (zoom <= 13) return 50;
+        return 25;
+      },
+      disableClusteringAtZoom: 15,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: function (cluster) {
+        const markers = cluster.getAllChildMarkers();
+        const count = markers.length;
+        let sumAsk = 0;
+        markers.forEach(m => {
+          if (m.itemData) sumAsk += Number(m.itemData.askUnit || 0);
+        });
+        const avgAsk = (sumAsk / count).toFixed(1);
+
+        return L.divIcon({
+          html: `
+            <div class="cluster-pin" style="border: 2px solid #ea580c; background: #fff7ed;">
+              <div class="cluster-header" style="color: #9a3412;">
+                <span style="color:#ea580c; font-size:12px;">🏷️</span>
+                <span>${count} 筆在售</span>
+              </div>
+              <div class="cluster-price" style="color: #c2410c;">均 <b>${avgAsk}</b> 萬/坪</div>
+            </div>
+          `,
+          className: 'cluster-icon-wrapper',
+          iconSize: L.point(96, 44),
+          iconAnchor: [48, 22]
+        });
+      }
+    });
+    onsaleClusterGroup.addTo(map);
 
     function handleOnsaleToggle() {
       const checked = document.getElementById('toggleOnsale').checked;
       if (checked) {
         renderOnsaleMarkers();
-        if (!map.hasLayer(onsaleLayer)) onsaleLayer.addTo(map);
+        if (!map.hasLayer(onsaleClusterGroup)) onsaleClusterGroup.addTo(map);
       } else {
-        map.removeLayer(onsaleLayer);
+        map.removeLayer(onsaleClusterGroup);
       }
     }
 
     function renderOnsaleMarkers() {
-      onsaleLayer.clearLayers();
+      onsaleClusterGroup.clearLayers();
       const toggleEl = document.getElementById('toggleOnsale');
       if (toggleEl && !toggleEl.checked) return;
 
@@ -961,7 +996,7 @@
           this.openPopup();
         });
 
-        onsaleLayer.addLayer(marker);
+        onsaleClusterGroup.addLayer(marker);
       });
     }
 
