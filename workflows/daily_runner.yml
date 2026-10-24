@@ -1,6 +1,6 @@
 name: Tainan Real Estate AI Daily Runner
 
-on:
+on: 
   schedule:
     - cron: '0 0 * * *' # 每天定時執行
   workflow_dispatch: # 支援手動一鍵觸發測試
