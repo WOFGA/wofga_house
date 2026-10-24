@@ -1,0 +1,35 @@
+name: Tainan Real Estate AI Daily Runner
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天定時執行
+  workflow_dispatch: # 支援手動一鍵觸發測試
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢出專案程式碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝相依套件
+        run: pip install pandas requests google-genai
+
+      - name: 執行 AI 代理腳本
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python run_agent.py
+
+      - name: 自動將更新後的 listings.json 推回網頁
+        run: |
+          git config --global user.name "Gemini AI Agent"
+          git config --global user.email "agent@wofga-house.ai"
+          git add listings.json
+          git diff --staged --quiet || (git commit -m "🤖 AI Agent: 自動更新今日台南房產地圖數據" && git push)
