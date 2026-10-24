@@ -7,15 +7,97 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet MarkerCluster 支援多層級縮放聚合均價 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <style>
     .blur-paywall { filter: blur(6px); user-select: none; pointer-events: none; }
-    .custom-pin { display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: white; border-radius: 9999px; padding: 4px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.45); border: 2px solid white; white-space: nowrap; transition: transform 0.15s ease; cursor: pointer; }
-    .custom-pin:hover { transform: scale(1.1); z-index: 999 !important; }
+    
+    /* 自訂地圖標記：黑字高對比膠囊風格，徹底解決白色字體不清楚問題 */
+    .custom-pin {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 900;
+      font-size: 11px;
+      color: #0f172a !important; /* 深黑字體，高對比清晰可見 */
+      border-radius: 9999px;
+      padding: 3px 9px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.45), 0 0 0 1.5px rgba(255,255,255,0.95);
+      white-space: nowrap;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+    .custom-pin:hover {
+      transform: scale(1.12);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.65), 0 0 0 2px #0284c7;
+      z-index: 1000 !important;
+    }
+
+    /* 聚合氣泡標記 (Cluster Pin)：在不同 Zoom-level 自動顯示區域/社區均價 */
+    .cluster-pin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 12px;
+      padding: 4px 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 1.5px rgba(15,23,42,0.15);
+      min-width: 96px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .cluster-pin:hover {
+      transform: scale(1.08);
+    }
+    .cluster-header {
+      font-size: 10px;
+      font-weight: 800;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .cluster-price {
+      font-size: 11px;
+      font-weight: 900;
+      color: #0f172a; /* 黑色加粗 */
+      line-height: 1.2;
+    }
+    .cluster-price b {
+      font-size: 13px;
+    }
+
     /* 自訂深色高質感 Leaflet Pop-up 小卡 */
-    .leaflet-popup-content-wrapper { background: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; border-radius: 16px !important; padding: 2px !important; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.7) !important; }
-    .leaflet-popup-tip { background: #0f172a !important; border: 1px solid #334155; }
-    .leaflet-popup-content { margin: 12px 14px !important; width: 320px !important; line-height: 1.5; }
-    .leaflet-container a.leaflet-popup-close-button { color: #94a3b8 !important; font-size: 18px !important; padding: 6px 8px 0 0 !important; }
+    .leaflet-popup-content-wrapper {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155;
+      border-radius: 16px !important;
+      padding: 2px !important;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.7) !important;
+    }
+    .leaflet-popup-tip {
+      background: #0f172a !important;
+      border: 1px solid #334155;
+    }
+    .leaflet-popup-content {
+      margin: 12px 14px !important;
+      width: 320px !important;
+      line-height: 1.5;
+    }
+    .leaflet-container a.leaflet-popup-close-button {
+      color: #94a3b8 !important;
+      font-size: 18px !important;
+      padding: 6px 8px 0 0 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -48,12 +130,28 @@
     <!-- 左側台南互動地圖 -->
     <div class="lg:col-span-7 relative min-h-[460px] lg:min-h-[calc(100vh-64px)]">
       <div id="map" class="w-full h-full z-10"></div>
-      <!-- 地圖圖例 -->
-      <div class="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl">
-        <div class="font-bold text-slate-200 mb-1">📍 實價登錄折溢價雷達 (滑鼠移至標記可預覽小卡)</div>
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> 🟢 投資 A 級：低於實登 ≥4% (推薦撿便宜)</div>
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> 🔵 自住推薦：符合社區實登行情 (-4% ~ +2%)</div>
-        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> 🔴 溢價注意：高於實登行情 >2% (勿追高)</div>
+      
+      <!-- 地圖圖例與多層級縮放導引 -->
+      <div class="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 text-xs space-y-1.5 shadow-xl max-w-xs">
+        <div class="font-bold text-slate-200 flex items-center justify-between">
+          <span>📍 實價登錄折溢價雷達</span>
+          <span id="zoomModeBadge" class="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold">區域聚合中</span>
+        </div>
+        <div class="text-[11px] text-slate-400 leading-snug">
+          💡 <b>縮放導引</b>：地圖縮小自動顯示區域均價；滾輪放大 (Zoom In) 展開各案明細價格。滑鼠懸停 (Hover) 自動彈出小卡，移開即自動關閉。
+        </div>
+        <div class="flex items-center gap-2 pt-1 border-t border-slate-800">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block border border-emerald-600"></span> 
+          <span class="text-slate-200">🟢 投資 A 級：低於實登 ≥4%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-sky-300 inline-block border border-sky-500"></span> 
+          <span class="text-slate-200">🔵 自住推薦：符合實登行情 (-4% ~ +2%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-rose-300 inline-block border border-rose-500"></span> 
+          <span class="text-slate-200">🔴 溢價注意：高於實登行情 >2%</span>
+        </div>
       </div>
     </div>
 
@@ -107,15 +205,98 @@
     let allListings = [];
     let filteredListings = [];
     let selectedItem = null;
-    let markerGroup = L.layerGroup();
+
+    // Pop-up 滑鼠移開自動關閉計時器與標記狀態
+    let popupCloseTimer = null;
+    let isCursorOnPopup = false;
 
     // 初始化 Leaflet 台南地圖 (預設中心落在台南市核心)
-    const map = L.map('map').setView([23.005, 120.215], 12);
+    const map = L.map('map', { minZoom: 10, maxZoom: 19 }).setView([23.005, 120.215], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-    markerGroup.addTo(map);
+
+    // 初始化 Leaflet.markercluster 聚合群組 (不同 Zoom 智慧顯示聚合均價 vs 明細價格)
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: function(zoom) {
+        if (zoom <= 11) return 85;
+        if (zoom === 12) return 65;
+        if (zoom === 13) return 45;
+        return 30;
+      },
+      disableClusteringAtZoom: 15, // 放大至 15 級以上自動全部展開為單案詳細價格
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: function (cluster) {
+        const markers = cluster.getAllChildMarkers();
+        const count = markers.length;
+        let sumAsk = 0;
+        let sumReg = 0;
+        markers.forEach(m => {
+          if (m.itemData) {
+            sumAsk += Number(m.itemData.askUnit || 0);
+            sumReg += Number(m.itemData.regUnit || 0);
+          }
+        });
+        const avgAsk = (sumAsk / count).toFixed(1);
+        const avgReg = (sumReg / count).toFixed(1);
+        const isBargain = Number(avgAsk) <= Number(avgReg);
+
+        const borderCol = isBargain ? '#059669' : '#d97706';
+        const numCol = isBargain ? '#047857' : '#b45309';
+        const dotCol = isBargain ? '#10b981' : '#f59e0b';
+
+        return L.divIcon({
+          html: `
+            <div class="cluster-pin" style="border: 2px solid ${borderCol};">
+              <div class="cluster-header">
+                <span style="color:${dotCol}; font-size:12px;">●</span>
+                <span>${count} 筆聚合</span>
+              </div>
+              <div class="cluster-price">均 <b style="color:${numCol};">${avgAsk}</b> 萬/坪</div>
+            </div>
+          `,
+          className: 'cluster-icon-wrapper',
+          iconSize: L.point(96, 44),
+          iconAnchor: [48, 22]
+        });
+      }
+    });
+    clusterGroup.addTo(map);
+
+    // 監聽縮放等級，動態更新 UI 提示徽章
+    map.on('zoomend', function() {
+      const z = map.getZoom();
+      const badge = document.getElementById('zoomModeBadge');
+      if (badge) {
+        if (z >= 15) {
+          badge.textContent = `明細模式 (Zoom ${z})`;
+          badge.className = "text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-700 font-bold";
+        } else {
+          badge.textContent = `聚合均價 (Zoom ${z})`;
+          badge.className = "text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold";
+        }
+      }
+    });
+
+    // 監聽地圖 Pop-up 事件：當滑鼠移入 Pop-up 內容時保持開啟，移出時平滑關閉
+    map.on('popupopen', function (e) {
+      const popupEl = e.popup.getElement();
+      if (popupEl) {
+        popupEl.onmouseenter = function() {
+          clearTimeout(popupCloseTimer);
+          isCursorOnPopup = true;
+        };
+        popupEl.onmouseleave = function() {
+          isCursorOnPopup = false;
+          popupCloseTimer = setTimeout(() => {
+            map.closePopup();
+          }, 200);
+        };
+      }
+    });
 
     // 格式標準化函式，確保新舊 listings.json 均能 100% 呈現完整規格
     function normalizeItem(raw, idx) {
@@ -283,6 +464,7 @@
       filteredListings = val === 'ALL' ? [...allListings] : allListings.filter(x => x.district === val);
       if (filteredListings.length > 0) {
         selectedItem = filteredListings[0];
+        // 選擇單一行政區時，直接 Zoom In 到 14 級展開細節
         map.setView([selectedItem.lat, selectedItem.lng], val === 'ALL' ? 12 : 14);
         renderMarkers();
         renderDetail();
@@ -290,28 +472,68 @@
     }
 
     function renderMarkers() {
-      markerGroup.clearLayers();
+      clusterGroup.clearLayers();
+
       filteredListings.forEach(item => {
-        const bg = item.diffPct <= -4.0 ? '#10b981' : (item.diffPct > 2.0 ? '#f43f5e' : '#3b82f6');
+        // 設定深黑清晰字體與高對比淺底色
+        let bg = '#bae6fd';
+        let border = '#0284c7';
+        let textColor = '#0c4a6e';
+        let iconSymbol = '🏠';
+        let diffBadge = `${item.diffPct > 0 ? '+' : ''}${item.diffPct}%`;
+
+        if (item.diffPct <= -4.0) {
+          bg = '#a7f3d0';
+          border = '#059669';
+          textColor = '#064e3b';
+          iconSymbol = '🟢';
+        } else if (item.diffPct > 2.0) {
+          bg = '#fecdd3';
+          border = '#e11d48';
+          textColor = '#881337';
+          iconSymbol = '⚠️';
+        }
+
         const icon = L.divIcon({
           className: '',
-          html: `<div class="custom-pin" style="background:${bg}">${item.district} ${item.askUnit}萬/坪 (${item.diffPct > 0 ? '+' : ''}${item.diffPct}%)</div>`
+          html: `
+            <div class="custom-pin" style="background:${bg}; border: 1.5px solid ${border}; color:${textColor};">
+              <span>${iconSymbol}</span>
+              <span style="font-weight:900;">${item.district}</span>
+              <span style="font-weight:900;">${item.askUnit}萬</span>
+              <span style="font-weight:900; opacity:0.9;">(${diffBadge})</span>
+            </div>
+          `,
+          iconAnchor: [45, 15]
         });
 
-        const marker = L.marker([item.lat, item.lng], { icon }).addTo(markerGroup);
+        const marker = L.marker([item.lat, item.lng], { icon });
+        marker.itemData = item; // 供 Cluster 聚合計算平均價格
         marker.bindPopup(buildPopupCardHtml(item), { maxWidth: 340, autoPan: true });
 
-        // 滑鼠移過去 (Hover) 自動彈出 Pop-up 資訊小卡
+        // 滑鼠移入 (Hover) 自動彈出 Pop-up 資訊小卡
         marker.on('mouseover', function () {
+          clearTimeout(popupCloseTimer);
           this.openPopup();
         });
 
-        // 點擊標記時同步更新右側深度面板
+        // 滑鼠移出 (Mouseout) 自動關閉小卡（延遲 250ms 確保滑鼠平滑移入 Pop-up 內）
+        marker.on('mouseout', function () {
+          popupCloseTimer = setTimeout(() => {
+            if (!isCursorOnPopup) {
+              marker.closePopup();
+            }
+          }, 250);
+        });
+
+        // 點擊標記時同步更新右側深度面板並開啟小卡
         marker.on('click', function () {
           selectedItem = item;
           renderDetail();
           this.openPopup();
         });
+
+        clusterGroup.addLayer(marker);
       });
     }
 
