@@ -478,46 +478,78 @@
       const selectedCars = compareList.map(id => carsData.find(c => c.id === id));
 
       const rows = [
-        { label: '品牌車型', render: c => `<span class="font-extrabold text-slate-900">${c.brand} ${c.model}</span>` },
-        { label: '新車參考價', render: c => `<span class="font-black text-blue-600">${c.price_range}</span>` },
-        { label: '車輛級距', render: c => c.category },
-        { label: '動力引擎 / 馬力', render: c => `${c.powertrain} <br><span class="font-semibold text-slate-700">${c.horsepower}</span>` },
-        { label: '油耗 / 續航表現', render: c => `<span class="font-bold text-emerald-600">${c.fuel_economy}</span>` },
-        { label: '每年牌照燃料稅', render: c => c.annual_tax },
-        { label: '主被動智慧安全 (ADAS)', render: c => c.adas },
-        { label: '行李箱後座空間', render: c => c.cargo_space },
-        { label: '特色優勢總結', render: c => c.highlights.map(h => `• ${h}`).join('<br>') },
+        { label: '新車參考價', icon: 'fa-tag', render: c => `<span class="font-black text-blue-600 text-sm sm:text-base whitespace-nowrap">${c.price_range}</span>` },
+        { label: '車輛級距', icon: 'fa-shapes', render: c => `<span class="font-semibold text-slate-800 text-xs sm:text-sm">${c.category}</span>` },
+        { label: '動力引擎 / 馬力', icon: 'fa-bolt', render: c => `<div class="font-bold text-slate-900 text-xs sm:text-sm">${c.horsepower}</div><div class="text-[11px] text-slate-500 mt-0.5">${c.powertrain}</div>` },
+        { label: '油耗 / 續航表現', icon: 'fa-gas-pump', render: c => `<span class="inline-block font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-xs sm:text-sm whitespace-nowrap">${c.fuel_economy}</span>` },
+        { label: '每年牌照燃料稅', icon: 'fa-receipt', render: c => `<span class="font-medium text-slate-700 text-xs sm:text-sm">${c.annual_tax}</span>` },
+        { label: '智慧輔助 (ADAS)', icon: 'fa-shield-halved', render: c => `<span class="font-medium text-slate-800 text-xs sm:text-sm">${c.adas}</span>` },
+        { label: '行李箱空間', icon: 'fa-suitcase-rolling', render: c => `<span class="font-medium text-slate-700 text-xs sm:text-sm">${c.cargo_space}</span>` },
+        { label: '特色優勢總結', icon: 'fa-star', render: c => `<div class="space-y-1">${c.highlights.map(h => `<div class="flex items-start gap-1.5 text-xs text-slate-700"><i class="fa-solid fa-circle-check text-blue-500 text-[10px] mt-0.5 flex-shrink-0"></i><span>${h}</span></div>`).join('')}</div>` },
       ];
 
       arena.innerHTML = `
-        <table class="w-full text-left border-collapse min-w-[600px]">
-          <thead>
-            <tr class="border-b border-slate-200">
-              <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase w-1/4">比較維度</th>
-              ${selectedCars.map(c => `
-                <th class="py-3 px-4 text-sm font-bold text-slate-800 w-3/8">
-                  <div class="flex items-center gap-2">
-                    <img src="${c.image}" class="w-10 h-10 object-cover rounded-lg border border-slate-200">
-                    <div>
-                      <div class="font-black">${c.brand} ${c.model}</div>
-                      <div class="text-xs text-blue-600 font-semibold">${c.price_range}</div>
+        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <!-- 橫向滾動容器 -->
+          <div class="overflow-x-auto relative">
+            <table class="w-full text-left border-collapse min-w-[580px]">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200">
+                  <!-- 凍結首欄 (比較項目) -->
+                  <th scope="col" class="sticky left-0 z-20 bg-slate-100 py-3.5 px-3 sm:px-4 text-xs font-black text-slate-700 uppercase tracking-wider w-[120px] sm:w-[150px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-slate-200">
+                    <div class="flex items-center gap-1.5">
+                      <i class="fa-solid fa-table-columns text-blue-600"></i>
+                      <span>比較項目</span>
                     </div>
-                  </div>
-                </th>
-              `).join('')}
-              ${selectedCars.length === 1 ? `<th class="py-3 px-4 text-xs text-slate-400 font-normal">請再選 1 輛車進行對決</th>` : ''}
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-sm">
-            ${rows.map(r => `
-              <tr class="hover:bg-slate-50/60 transition">
-                <td class="py-3.5 px-4 font-bold text-slate-600 text-xs">${r.label}</td>
-                ${selectedCars.map(c => `<td class="py-3.5 px-4 leading-relaxed">${r.render(c)}</td>`).join('')}
-                ${selectedCars.length === 1 ? `<td class="py-3.5 px-4 text-slate-300 italic text-xs">等待第二輛車</td>` : ''}
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+                  </th>
+                  ${selectedCars.map(c => `
+                    <th scope="col" class="py-3.5 px-3 sm:px-4 text-sm font-bold text-slate-800 bg-white border-r border-slate-100 last:border-r-0 min-w-[210px]">
+                      <div class="flex items-start gap-2.5">
+                        <img src="${c.image}" class="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg border border-slate-200 shadow-sm flex-shrink-0">
+                        <div class="min-w-0">
+                          <div class="font-black text-slate-900 leading-tight text-xs sm:text-sm">${c.brand}</div>
+                          <div class="font-extrabold text-sm sm:text-base text-slate-800 leading-tight mt-0.5">${c.model}</div>
+                          <button onclick="toggleCompare('${c.id}')" class="mt-1 text-[11px] text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition">
+                            <i class="fa-solid fa-xmark"></i> 移除
+                          </button>
+                        </div>
+                      </div>
+                    </th>
+                  `).join('')}
+                  ${selectedCars.length === 1 ? `
+                    <th scope="col" class="py-3.5 px-4 text-xs text-slate-400 font-normal bg-slate-50/50 min-w-[190px] text-center">
+                      <div class="p-3 border-2 border-dashed border-slate-200 rounded-lg">
+                        <i class="fa-solid fa-plus text-slate-300 text-lg mb-1 block"></i>
+                        請在上方點擊「加入比較」選入第 2 輛車
+                      </div>
+                    </th>` : ''}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-sm bg-white">
+                ${rows.map((r, idx) => `
+                  <tr class="hover:bg-blue-50/20 transition ${idx % 2 === 1 ? 'bg-slate-50/40' : ''}">
+                    <!-- 凍結首欄 (固定在最左側，滑動時永遠看得到) -->
+                    <td class="sticky left-0 z-10 py-3.5 px-3 sm:px-4 font-black text-slate-700 text-xs sm:text-sm bg-slate-100/95 backdrop-blur shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-slate-200">
+                      <div class="flex items-center gap-1.5">
+                        <i class="fa-solid ${r.icon} text-slate-400 text-xs w-4 text-center"></i>
+                        <span>${r.label}</span>
+                      </div>
+                    </td>
+                    ${selectedCars.map(c => `
+                      <td class="py-3.5 px-3 sm:px-4 leading-relaxed border-r border-slate-100 last:border-r-0 min-w-[210px]">
+                        ${r.render(c)}
+                      </td>
+                    `).join('')}
+                    ${selectedCars.length === 1 ? `
+                      <td class="py-3.5 px-4 text-slate-300 italic text-xs bg-slate-50/30 text-center min-w-[190px]">
+                        待對決
+                      </td>` : ''}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
       `;
     }
 
