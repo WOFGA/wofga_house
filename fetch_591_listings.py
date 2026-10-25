@@ -31,7 +31,7 @@ headers = {
 
 DISTRICT_MAP = {
     "善化區": {
-        "sid": 211, "lat": 23.1322, "lng": 120.2968, "reg": 33.1,
+        "sid": 238, "lat": 23.1322, "lng": 120.2968, "reg": 33.1,
         "circle": "南科LM特區/善化車站",
         "transit": "近南科火車站・捷運深藍線南科走廊",
         "rezoning": "善化南科LM重劃特區",
@@ -39,7 +39,7 @@ DISTRICT_MAP = {
         "mall": "善化中山路商圈/全聯旗艦店"
     },
     "東區": {
-        "sid": 201, "lat": 22.9855, "lng": 120.2307, "reg": 35.2,
+        "sid": 206, "lat": 22.9855, "lng": 120.2307, "reg": 35.2,
         "circle": "平實營區/成大文教圈",
         "transit": "距捷運第一期藍線 B05 平實轉運站約 3 分鐘",
         "rezoning": "平實營區市地重劃區旗艦核心",
@@ -47,7 +47,7 @@ DISTRICT_MAP = {
         "mall": "南紡購物中心"
     },
     "永康區": {
-        "sid": 207, "lat": 23.0264, "lng": 120.2570, "reg": 28.2,
+        "sid": 212, "lat": 23.0264, "lng": 120.2570, "reg": 28.2,
         "circle": "大橋東橋特區/市立總圖/永康核心",
         "transit": "近台南捷運藍線 B01 大橋雙鐵共構樞紐",
         "rezoning": "永康大橋/東橋文教重劃特區",
@@ -55,7 +55,7 @@ DISTRICT_MAP = {
         "mall": "永康中華路商圈/家樂福"
     },
     "安南區": {
-        "sid": 204, "lat": 23.0482, "lng": 120.1843, "reg": 28.6,
+        "sid": 211, "lat": 23.0482, "lng": 120.1843, "reg": 28.6,
         "circle": "九份子低碳/科工區特區",
         "transit": "北外環快速道路 15 分鐘直抵南科台積電 18 廠",
         "rezoning": "九份子水岸低碳示範重劃區",
@@ -63,7 +63,7 @@ DISTRICT_MAP = {
         "mall": "好市多 Costco 台南店"
     },
     "北區": {
-        "sid": 202, "lat": 23.0118, "lng": 120.2045, "reg": 32.5,
+        "sid": 209, "lat": 23.0118, "lng": 120.2045, "reg": 32.5,
         "circle": "鄭子寮重劃/好市多商圈",
         "transit": "海安路林蔭大道・北外環中華北路匝道",
         "rezoning": "鄭子寮低密度花園重劃區",
@@ -71,7 +71,7 @@ DISTRICT_MAP = {
         "mall": "好市多 Costco / 大潤發"
     },
     "安平區": {
-        "sid": 205, "lat": 22.9981, "lng": 120.1652, "reg": 31.8,
+        "sid": 210, "lat": 22.9981, "lng": 120.1652, "reg": 31.8,
         "circle": "五期重劃/國平遊艇特區",
         "transit": "安平港聯外快速道路・未來捷運綠線走廊",
         "rezoning": "安平五期/國平遊艇港灣重劃特區",
@@ -79,7 +79,7 @@ DISTRICT_MAP = {
         "mall": "新光三越新天地 / 安平家樂福"
     },
     "中西區": {
-        "sid": 203, "lat": 22.9922, "lng": 120.2014, "reg": 33.4,
+        "sid": 208, "lat": 22.9922, "lng": 120.2014, "reg": 33.4,
         "circle": "湖美特區/南美館星鑽圈",
         "transit": "台南火車站核心商圈・府前路林蔭主軸",
         "rezoning": "中國城運河星鑽特區 / 湖美豪宅特區",
@@ -87,7 +87,7 @@ DISTRICT_MAP = {
         "mall": "新光三越西門新天地"
     },
     "新市區": {
-        "sid": 212, "lat": 23.0782, "lng": 120.2925, "reg": 31.5,
+        "sid": 241, "lat": 23.0782, "lng": 120.2925, "reg": 31.5,
         "circle": "新市車站/南科外溢圈",
         "transit": "新市火車站・台一線直通南科迎曦湖",
         "rezoning": "新市既成核心商圈 / 新和重劃區",
@@ -103,23 +103,15 @@ DISTRICT_MAP = {
         "mall": "MITSUI OUTLET PARK 台南三井"
     },
     "南區": {
-        "sid": 206, "lat": 22.9602, "lng": 120.1902, "reg": 24.5,
+        "sid": 207, "lat": 22.9602, "lng": 120.1902, "reg": 24.5,
         "circle": "水交社文創/舉喜重劃區",
         "transit": "台86快速道路・西濱快速道路串聯",
         "rezoning": "水交社重劃區 / 舉喜重劃區",
         "school": "志開實驗小學 / 大成國中",
         "mall": "碳佐麻里新興園區 / 誠品生活"
     },
-    "麻豆區": {
-        "lat": 23.1820, "lng": 120.2480, "reg": 22.5,
-        "circle": "麻豆交流道/首府生活圈",
-        "transit": "國道一號麻豆交流道・市道176線",
-        "rezoning": "麻豆交流道周邊生活圈",
-        "school": "麻豆國小 / 黎明中學",
-        "mall": "麻豆市區核心商圈"
-    },
     "安定區": {
-        "lat": 23.1070, "lng": 120.2370, "reg": 26.5,
+        "sid": 242, "lat": 23.1070, "lng": 120.2370, "reg": 26.5,
         "circle": "安定交流道/南科西側生活圈",
         "transit": "國道一號安定交流道・市道178線直通南科",
         "rezoning": "安定南科外溢生活圈",
@@ -127,12 +119,20 @@ DISTRICT_MAP = {
         "mall": "安定農會商圈"
     },
     "仁德區": {
-        "lat": 22.9710, "lng": 120.2520, "reg": 26.0,
+        "sid": 219, "lat": 22.9710, "lng": 120.2520, "reg": 26.0,
         "circle": "仁德交流道/家樂福商圈",
         "transit": "國道一號仁德交流道・東門路延伸段",
         "rezoning": "仁德家樂福特力屋商圈",
         "school": "仁德國中 / 仁德國小",
         "mall": "家樂福仁德店 / 特力屋"
+    },
+    "麻豆區": {
+        "sid": 223, "lat": 23.1820, "lng": 120.2480, "reg": 22.5,
+        "circle": "麻豆交流道/首府生活圈",
+        "transit": "國道一號麻豆交流道・市道176線",
+        "rezoning": "麻豆交流道周邊生活圈",
+        "school": "麻豆國小 / 黎明中學",
+        "mall": "麻豆市區核心商圈"
     }
 }
 
@@ -197,6 +197,9 @@ DISTRICT_ROAD_COORDS = {
         "崇德": (22.9750, 120.2260),
         "崇善": (22.9780, 120.2280),
         "德祥": (22.9925, 120.2360),
+        "仁和": (22.9780, 120.2350),
+        "仁東": (22.9750, 120.2360),
+        "林森": (22.9890, 120.2220),
         "長東": (22.9680, 120.2310),
         "富立": (22.9640, 120.2260),
         "南紡": (22.9910, 120.2320),
@@ -215,7 +218,10 @@ DISTRICT_ROAD_COORDS = {
         "安和": (23.0550, 120.2100),
         "本原": (23.0490, 120.1910),
         "同安": (23.0420, 120.1960),
-        "怡安": (23.0410, 120.2020)
+        "怡安": (23.0410, 120.2020),
+        "慈興": (23.0315, 120.1812),
+        "環館": (23.0578, 120.2370),
+        "館前": (23.0592, 120.2355)
     },
     "北區": {
         "海安": (23.0130, 120.2010),
@@ -247,6 +253,7 @@ DISTRICT_ROAD_COORDS = {
         "西門": (22.9935, 120.2005)
     },
     "南區": {
+        "大同": (22.9750, 120.2150),
         "水交社": (22.9810, 120.2010),
         "新建": (22.9730, 120.1880),
         "萬年": (22.9420, 120.1850),
@@ -262,13 +269,35 @@ DISTRICT_ROAD_COORDS = {
         "歸仁": (22.9680, 120.2940),
         "中山": (22.9690, 120.2960), # 歸仁中山路
         "中正": (22.9650, 120.2920)
+    },
+    "仁德區": {
+        "中山": (22.9710, 120.2520),
+        "中正": (22.9700, 120.2500),
+        "文德": (22.9730, 120.2450),
+        "家樂福": (22.9720, 120.2490)
+    },
+    "安定區": {
+        "港口": (23.1070, 120.2370),
+        "蘇厝": (23.1180, 120.2450),
+        "安定": (23.1070, 120.2370)
+    },
+    "麻豆區": {
+        "麻豆": (23.1820, 120.2480),
+        "興國": (23.1830, 120.2500),
+        "中山": (23.1810, 120.2490)
     }
 }
 
 def resolve_district_and_coords(text, title, default_dist, house_id):
     """
-    從 591 內文與標題雙向解析真實行政區與座標，杜絕跨區廣告錯位
+    從 591 內文與標題雙向解析真實行政區與座標，嚴格杜絕外縣市（如雲林/嘉義/高雄）與跨區錯位
     """
+    # 嚴格排除外縣市干擾
+    NON_TAINAN = ["雲林", "嘉義", "高雄", "屏東", "台中", "彰化", "南投", "台北", "新北", "桃園", "新竹", "苗栗", "宜蘭", "花蓮", "台東", "澎湖", "金門", "連江"]
+    if any(k in text for k in NON_TAINAN) or any(k in title for k in NON_TAINAN):
+        return None, None, None, None, False
+
+    # 1. 優先從 591 內文「台南市-行政區-路名」提取
     m = re.search(r'台南市-([^\s|-]+)-([^\s|]+)', text)
     dist_raw = m.group(1).strip() if m else ""
     road_raw = m.group(2).strip() if m else ""
@@ -280,7 +309,7 @@ def resolve_district_and_coords(text, title, default_dist, house_id):
                 matched_dist = d
                 break
 
-    # 若內文未抓出，從標題辨識明確行政區
+    # 2. 若內文未抓出，從標題辨識明確行政區
     if not matched_dist:
         for d in DISTRICT_MAP:
             d_short = d.replace("區", "")
@@ -288,18 +317,30 @@ def resolve_district_and_coords(text, title, default_dist, house_id):
                 matched_dist = d
                 break
 
-    # 最後 fallback
+    # 3. 若仍未辨識，從 text 全文搜尋是否有明確行政區
     if not matched_dist:
-        matched_dist = default_dist
+        for d in DISTRICT_MAP:
+            if d in text:
+                matched_dist = d
+                break
 
-    info = DISTRICT_MAP.get(matched_dist, DISTRICT_MAP[default_dist])
+    # 4. 若確認包含「台南市」或「台南」，才 fallback 到搜尋行政區
+    if not matched_dist:
+        if "台南市" in text or "台南" in text or "台南" in title:
+            matched_dist = default_dist
+        else:
+            return None, None, None, None, False
+
+    info = DISTRICT_MAP.get(matched_dist, DISTRICT_MAP.get(default_dist))
+    if not info:
+        return None, None, None, None, False
 
     # 查對該行政區專屬道路
     d_roads = DISTRICT_ROAD_COORDS.get(matched_dist, {})
     coords = None
     matched_road = False
     for k, c in d_roads.items():
-        if k in road_raw or k in title:
+        if k in road_raw or k in title or k in text:
             coords = c
             matched_road = True
             break
@@ -363,7 +404,7 @@ def crawl_591_all_districts(pages_per_dist=3):
                         # Price
                         p_m = re.search(r'([\d,]+)\s*萬', text)
                         ask_total = float(p_m.group(1).replace(',', '')) if p_m else 0
-                        if ask_total < 80 or ask_total > 15000:
+                        if ask_total < 100 or ask_total > 15000:
                             continue
 
                         # Unit price
@@ -375,6 +416,14 @@ def crawl_591_all_districts(pages_per_dist=3):
                         ping = float(ping_m.group(1)) if ping_m else 35.0
                         if ask_unit == 0 and ping > 0:
                             ask_unit = round(ask_total / ping, 1)
+
+                        # 單價與非住宅過濾：排除低於 6 萬/坪之純農地、魚塭、持分畸零地
+                        if ask_unit < 6.0 or ask_unit > 150.0:
+                            continue
+                        if any(k in text for k in ["類別：農地", "農地", "魚塭", "林地", "山坡地", "墓地"]):
+                            continue
+                        if "土地" in text and "住宅" not in text and "建地" not in text:
+                            continue
 
                         # Layout
                         r_m = re.search(r'(\d+房(?:\d+廳)?(?:\d+衛)?)', text)
@@ -388,6 +437,8 @@ def crawl_591_all_districts(pages_per_dist=3):
                             b_type = "精緻套房"
                         elif "華廈" in text:
                             b_type = "華廈"
+                        elif "店面" in text or "店住" in text:
+                            b_type = "店面/透天"
 
                         # Floor
                         fl_m = re.search(r'(\d+/\d+F|\d+F~\d+F/\d+F|\d+F)', text)
@@ -397,6 +448,8 @@ def crawl_591_all_districts(pages_per_dist=3):
                         real_dist, real_info, final_lat, final_lng, matched_road = resolve_district_and_coords(
                             text, title, search_dist, house_id
                         )
+                        if not real_dist or not real_info:
+                            continue
                         if not title:
                             title = f"{real_dist}優質景觀住宅"
 

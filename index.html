@@ -9,6 +9,11 @@
   <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+  <link rel="dns-prefetch" href="https://img1.591.com.tw">
+  <link rel="dns-prefetch" href="https://img2.591.com.tw">
+  <link rel="dns-prefetch" href="https://img3.591.com.tw">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -753,7 +758,7 @@
       });
 
       const m591 = L.marker([item591.lat, item591.lng], { icon: pinIcon }).addTo(active591Layer);
-      m591.bindPopup(buildPopupCardHtml(item591), { maxWidth: 340 });
+      m591.bindPopup(() => buildPopupCardHtml(item591), { maxWidth: 340 });
 
       // 地圖平移至該案並打開小卡
       map.setView([item591.lat, item591.lng], 15);
@@ -852,6 +857,10 @@
     // 實價登錄 MarkerCluster 聚合群組
     // ==========================================
     const clusterGroup = L.markerClusterGroup({
+      chunkedLoading: true,
+      chunkInterval: 50,
+      chunkDelay: 10,
+      animateAddingMarkers: false,
       maxClusterRadius: function(zoom) {
         if (zoom <= 11) return 85;
         if (zoom === 12) return 65;
@@ -904,6 +913,10 @@
     // ==========================================
     let onsaleListings = [];
     const onsaleClusterGroup = L.markerClusterGroup({
+      chunkedLoading: true,
+      chunkInterval: 50,
+      chunkDelay: 10,
+      animateAddingMarkers: false,
       maxClusterRadius: function(zoom) {
         if (zoom <= 11) return 80;
         if (zoom <= 13) return 50;
