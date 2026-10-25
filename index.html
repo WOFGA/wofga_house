@@ -28,6 +28,10 @@
     }
 
     /* Custom WebGIS and Pin Styles */
+    .leaflet-div-icon, .cluster-icon-wrapper {
+      background: transparent !important;
+      border: none !important;
+    }
     #map { background-color: #0f172a; }
     .blur-paywall { filter: blur(6px); user-select: none; pointer-events: none; }
     
@@ -45,6 +49,13 @@
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       cursor: pointer;
       line-height: 1.2;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
     .custom-pin:hover {
       transform: scale(1.12);
@@ -226,8 +237,8 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <div id="vipBadge" class="hidden sm:flex items-center px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-300">
-          身分：<span class="font-bold text-amber-400 ml-1">一般訪客</span>
+        <div id="vipBadge" class="flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] sm:text-xs text-slate-300 shrink-0">
+          身分：<span id="vipBadgeText" class="font-bold text-amber-400 ml-1">一般訪客</span>
         </div>
         <button onclick="openVipModal()" id="unlockBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-lg shadow transition shrink-0 whitespace-nowrap">
           👑 升級 VIP
@@ -237,19 +248,19 @@
 
     <!-- 第 2 列：591 即時比價輸入列 + 示範案 + 行政區下拉 -->
     <div class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2">
-      <div class="flex items-center gap-1.5 bg-slate-950/90 border border-amber-500/40 rounded-xl px-2 py-1 text-xs shadow-inner flex-1 min-w-0">
+      <div class="flex items-center gap-1.5 bg-slate-950/90 border border-amber-500/40 rounded-xl px-2.5 py-1 text-xs shadow-inner w-full sm:w-auto sm:flex-1 min-w-0">
         <span class="text-amber-400 font-extrabold shrink-0 whitespace-nowrap">🏷️ 591比價:</span>
-        <input id="input591Url" type="text" placeholder="輸入網址或案號 (例 16888)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-400 flex-1 min-w-0" onkeydown="if(event.key==='Enter') parse591Listing()" />
+        <input id="input591Url" type="text" aria-label="591 售屋網址或房屋編號" placeholder="輸入網址或案號 (例 16888)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-400 flex-1 min-w-0" onkeydown="if(event.key==='Enter') parse591Listing()" />
         <button onclick="parse591Listing()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black px-2.5 py-1 rounded-lg text-xs shrink-0 whitespace-nowrap shadow transition">
           ⚡ 解析
         </button>
       </div>
 
-      <div class="flex items-center gap-1 overflow-x-auto py-0.5 shrink-0 max-w-full">
-        <button onclick="quickTest591('pingshih')" title="平實營區在售案示範" class="shrink-0 whitespace-nowrap text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-700">平實案</button>
-        <button onclick="quickTest591('jiufenzhi')" title="九份子水岸在售案示範" class="shrink-0 whitespace-nowrap text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-700">九份子</button>
-        <button onclick="quickTest591('nanke')" title="南科LM特區在售案示範" class="shrink-0 whitespace-nowrap text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-700">南科LM</button>
-        <select id="districtFilter" onchange="filterByDistrict()" class="shrink-0 whitespace-nowrap bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2 py-1 font-bold cursor-pointer">
+      <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 shrink-0 max-w-full">
+        <button onclick="quickTest591('pingshih')" title="平實營區在售案示範" class="shrink-0 whitespace-nowrap text-[11px] bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 transition">平實案</button>
+        <button onclick="quickTest591('jiufenzhi')" title="九份子水岸在售案示範" class="shrink-0 whitespace-nowrap text-[11px] bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 transition">九份子</button>
+        <button onclick="quickTest591('nanke')" title="南科LM特區在售案示範" class="shrink-0 whitespace-nowrap text-[11px] bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-700 transition">南科LM</button>
+        <select id="districtFilter" aria-label="行政區快篩" onchange="filterByDistrict()" class="shrink-0 whitespace-nowrap bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 font-bold cursor-pointer">
           <option value="ALL">📍 全台南市</option>
         </select>
       </div>
@@ -266,7 +277,7 @@
       <div class="absolute top-3 right-3 z-[500] flex flex-col items-end gap-2">
         <!-- 手機版收合按鈕 (小於 lg 顯示) -->
         <button id="btnToggleLayersMobile" onclick="toggleMobilePanel('layers')" class="lg:hidden flex items-center gap-1.5 bg-slate-900/95 border border-slate-700 hover:border-slate-500 rounded-full px-3 py-1.5 text-xs font-bold text-slate-200 shadow-xl transition">
-          🗺️ 圖層開關 <span id="mobileLayerActiveCount" class="bg-emerald-500/20 text-emerald-300 text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">3</span>
+          🗺️ 圖層開關 <span id="mobileLayerActiveCount" class="bg-emerald-500/20 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">4</span>
         </button>
 
         <div id="layersPanel" class="hidden lg:block bg-slate-900/95 border border-slate-700/80 rounded-2xl p-3 shadow-2xl text-xs space-y-2.5 min-w-[220px] max-w-[260px] max-h-[68vh] overflow-y-auto">
@@ -274,7 +285,21 @@
             <span class="flex items-center gap-1.5">🗺️ <span>地圖圖層開關</span></span>
             <div class="flex items-center gap-1.5">
               <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">官方正版</span>
-              <button onclick="closeMobilePanels()" class="lg:hidden text-slate-400 hover:text-white font-bold px-1 text-sm leading-none" title="關閉">✕</button>
+              <button onclick="closeMobilePanels()" class="lg:hidden text-slate-400 hover:text-white font-bold w-6 h-6 flex items-center justify-center text-sm leading-none rounded hover:bg-slate-800" title="關閉">✕</button>
+            </div>
+          </div>
+
+          <!-- 實價登錄官方成交案件開關 (預設勾選開啟) -->
+          <div class="space-y-1 border-b border-slate-800 pb-2">
+            <label class="flex items-center justify-between cursor-pointer group hover:bg-slate-800/60 p-1.5 rounded-lg transition min-h-[36px]">
+              <span class="flex items-center gap-2 text-sky-300 font-extrabold group-hover:text-sky-200">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] inline-block"></span> 🏛️ 實價登錄雷達
+              </span>
+              <input type="checkbox" id="toggleRegistration" checked onchange="handleRegistrationToggle()" class="rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-0 cursor-pointer w-4 h-4" />
+            </label>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 px-1">
+              <span id="regCountBadge">共 266 筆成交記錄</span>
+              <span class="text-sky-400 font-bold">折溢價雷達</span>
             </div>
           </div>
 
@@ -354,7 +379,7 @@
             <span>📍 實價登錄折溢價雷達</span>
             <div class="flex items-center gap-2">
               <span id="zoomModeBadge" class="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold">區域聚合中</span>
-              <button onclick="closeMobilePanels()" class="lg:hidden text-slate-400 hover:text-white font-bold px-1 text-sm leading-none" title="關閉">✕</button>
+              <button onclick="closeMobilePanels()" class="lg:hidden text-slate-400 hover:text-white font-bold w-6 h-6 flex items-center justify-center text-sm leading-none rounded hover:bg-slate-800" title="關閉">✕</button>
             </div>
           </div>
           <div class="text-[11px] text-slate-400 leading-snug">
@@ -397,15 +422,15 @@
     </div>
   </main>
 
-  <!-- VIP 付費解鎖與金流彈窗 (支援小螢幕與橫向安全捲動) -->
-  <div id="vipModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+  <!-- VIP 付費解鎖與金流彈窗 (支援小螢幕、無障礙 WCAG 2.1 AA 焦點捕捉與 Escape 鍵關閉) -->
+  <div id="vipModal" role="dialog" aria-modal="true" aria-labelledby="vipModalTitle" aria-describedby="vipModalDesc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
     <div class="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl relative my-auto max-h-[90dvh] overflow-y-auto space-y-4">
-      <button onclick="closeVipModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg p-1 leading-none">✕</button>
+      <button onclick="closeVipModal()" aria-label="關閉 VIP 升級視窗" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg p-1 leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-slate-800 transition">✕</button>
       
       <div class="text-center space-y-1">
         <span class="inline-block bg-amber-500/20 text-amber-300 font-extrabold text-xs px-2.5 py-1 rounded-full border border-amber-500/30">PRO 會員解鎖</span>
-        <h3 class="text-lg sm:text-xl font-black text-white">升級台南房產 AI 投資雷達 VIP</h3>
-        <p class="text-xs text-slate-400">解鎖 591 最新在售比價、AI 殺價斡旋模型與歷史實登均價走勢</p>
+        <h3 id="vipModalTitle" class="text-lg sm:text-xl font-black text-white">升級台南房產 AI 投資雷達 VIP</h3>
+        <p id="vipModalDesc" class="text-xs text-slate-400">解鎖 591 最新在售比價、AI 殺價斡旋模型與歷史實登均價走勢</p>
       </div>
 
       <div class="space-y-2.5">
@@ -434,7 +459,7 @@
       <div class="space-y-2 pt-2 border-t border-slate-800">
         <div class="text-xs font-bold text-slate-300">🔑 輸入通行碼或購買解鎖碼：</div>
         <div class="flex gap-2">
-          <input type="text" id="vipCodeInput" placeholder="請輸入 VIP 通行碼 (例如: TAINAN888)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 flex-1 min-w-0" />
+          <input type="text" id="vipCodeInput" aria-label="VIP 通行碼" placeholder="請輸入 VIP 通行碼 (例如: TAINAN888)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 flex-1 min-w-0" onkeydown="if(event.key==='Enter') verifyVipCode()" />
           <button onclick="verifyVipCode()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs shadow transition shrink-0 whitespace-nowrap">
             立即啟用
           </button>
@@ -451,7 +476,16 @@
   <!-- 主邏輯腳本 (在 DOMContentLoaded 後執行，無阻塞首屏渲染) -->
   <script>
   document.addEventListener('DOMContentLoaded', function () {
-    let isVip = localStorage.getItem("wofga_vip") === "true";
+    function getStoredVip() {
+      try { return localStorage.getItem("wofga_vip") === "true"; } catch (e) { return false; }
+    }
+    function setStoredVip(val) {
+      try {
+        if (val) setStoredVip(true);
+        else setStoredVip(false);
+      } catch (e) {}
+    }
+    let isVip = getStoredVip();
     let allListings = [];
     let filteredListings = [];
     let selectedItem = null;
@@ -462,7 +496,7 @@
     const CAN_HOVER = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     // 初始化 Leaflet 台南地圖 (啟用 preferCanvas 加速向量繪製)
-    const map = L.map('map', { minZoom: 10, maxZoom: 19, preferCanvas: true }).setView([23.005, 120.215], 12);
+    const map = L.map('map', { minZoom: 10, maxZoom: 19, preferCanvas: true, tap: false }).setView([23.005, 120.215], 12);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       updateWhenIdle: true,
@@ -472,13 +506,28 @@
     }).addTo(map);
 
     // ==========================================
-    // 1. 經濟部官方土壤液化潛勢 WMTS 圖磚圖層
+    // 1. 經濟部官方土壤液化潛勢圖層 (ArcGIS Server 動態精準套疊)
     // ==========================================
-    const officialLiquefactionTile = L.tileLayer('https://gis.liquid.net.tw/arcgis/rest/services/P04032/Soil_cgs_2026/MapServer/WMTS/tile/1.0.0/P04032_Soil_cgs/default/GoogleMapsCompatible/{z}/{y}/{x}.png', {
+    const ArcGISDynamicTileLayer = L.TileLayer.extend({
+      getTileUrl: function (coords) {
+        const nwPoint = coords.scaleBy(this.getTileSize());
+        const sePoint = nwPoint.add(this.getTileSize());
+        const nw = this._map.unproject(nwPoint, coords.z);
+        const se = this._map.unproject(sePoint, coords.z);
+        const bbox = `${nw.lng.toFixed(6)},${se.lat.toFixed(6)},${se.lng.toFixed(6)},${nw.lat.toFixed(6)}`;
+        return `https://gis.liquid.net.tw/arcgis/rest/services/P04032/Soil_cgs_2026/MapServer/export?bbox=${bbox}&bboxSR=4326&imageSR=3857&size=256,256&f=image&format=png32&transparent=true`;
+      }
+    });
+
+    const officialLiquefactionTile = new ArcGISDynamicTileLayer('', {
       maxZoom: 18,
-      minZoom: 7,
+      minZoom: 8,
       opacity: 0.65,
-      attribution: '&copy; <a href="https://liquid.net.tw" target="_blank" class="underline text-amber-400">經濟部地調所</a>'
+      errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      attribution: '&copy; <a href="https://liquid.net.tw" target="_blank" class="underline text-amber-400">經濟部地質調查及礦業管理中心</a>'
+    });
+    officialLiquefactionTile.on('tileerror', function () {
+      // 容錯靜默處理官方圖磚伺服器連線異常或超時，避免破圖或中斷操作
     });
 
     // ==========================================
@@ -701,6 +750,19 @@
     // ==========================================
     // 圖層開關控制事件
     // ==========================================
+    window.handleRegistrationToggle = function () {
+      const el = document.getElementById('toggleRegistration');
+      const checked = el ? el.checked : true;
+      if (checked) {
+        renderMarkers();
+        if (!map.hasLayer(clusterGroup)) clusterGroup.addTo(map);
+      } else {
+        map.closePopup();
+        map.removeLayer(clusterGroup);
+      }
+      updateActiveLayerCount();
+    };
+
     window.handleLiquefactionToggle = function () {
       const checked = document.getElementById('toggleLiquefaction').checked;
       if (checked) officialLiquefactionTile.addTo(map);
@@ -734,7 +796,7 @@
     };
 
     function updateActiveLayerCount() {
-      const ids = ['toggleOnsale', 'toggleLiquefaction', 'toggleFlood', 'toggleTransitRezoning', 'toggleAmenities'];
+      const ids = ['toggleRegistration', 'toggleOnsale', 'toggleLiquefaction', 'toggleFlood', 'toggleTransitRezoning', 'toggleAmenities'];
       let cnt = 0;
       ids.forEach(id => {
         const el = document.getElementById(id);
@@ -766,8 +828,44 @@
       }
     };
 
-    map.on('popupopen', window.closeMobilePanels);
+    map.on('popupopen', function (e) {
+      window.closeMobilePanels();
+      const popupEl = e.popup.getElement();
+      if (!popupEl || popupEl._hasHoverListeners) return;
+      popupEl._hasHoverListeners = true;
+      popupEl.addEventListener('mouseenter', function () {
+        isCursorOnPopup = true;
+        clearTimeout(popupCloseTimer);
+      });
+      popupEl.addEventListener('mouseleave', function () {
+        isCursorOnPopup = false;
+        popupCloseTimer = setTimeout(() => {
+          if (!isCursorOnPopup) {
+            map.closePopup();
+          }
+        }, 350);
+      });
+    });
+
+    map.on('popupclose', function () {
+      isCursorOnPopup = false;
+      clearTimeout(popupCloseTimer);
+    });
+
     map.on('click', window.closeMobilePanels);
+
+    map.on('zoomend', function () {
+      const badge = document.getElementById('zoomModeBadge');
+      if (badge) {
+        if (map.getZoom() >= 15) {
+          badge.textContent = '單筆明細展開';
+          badge.className = 'text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-700 font-bold';
+        } else {
+          badge.textContent = '區域聚合中';
+          badge.className = 'text-[10px] bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold';
+        }
+      }
+    });
 
     window.addEventListener('resize', function () {
       const layersEl = document.getElementById('layersPanel');
@@ -796,42 +894,112 @@
           return;
         }
 
-        let houseId = val.match(/\d{5,10}/) ? val.match(/\d{5,10}/)[0] : "16888";
-        item591 = {
-          id: `591-${houseId}`,
-          title: `591在售案 (編號#${houseId})・東區平實公園景觀宅`,
-          district: "東區",
-          circle: "平實營區重劃區",
-          layout: "3房2廳2衛",
-          ping: 42.5,
-          askTotal: 1880,
-          askUnit: 44.2,
-          regUnit: 35.2,
-          diffPct: 25.6,
-          priceDiffWan: 9.0,
-          lat: 22.9960,
-          lng: 120.2350,
-          sourceUrl: val.startsWith('http') ? val : `https://sale.591.com.tw/home/house/detail/2/${houseId}.html`,
-          transitProject: "距捷運藍線 B05 平實轉運站步行約 4 分鐘 (320m)",
-          rezoningArea: "平實營區市地重劃區核心地段",
-          liquefaction: "🟢 低潛勢（台南台地穩固地層・抗震安全優）",
-          floodRisk: "🟢 安全優質（地勢高聳・歷年無淹水紀錄・排水優）",
-          seismicNote: "🛡️ 921後新法規耐震標準・RC鋼筋混凝土結構",
-          nearestSchool: "國立成功大學 (NCKU)",
-          schoolDistText: "車程約 3 分鐘 (1.2km)",
-          nearestMall: "南紡購物中心",
-          mallDistText: "步行約 5 分鐘 (420m)"
-        };
+        let houseId = val.match(/\d{5,10}/) ? val.match(/\d{5,10}/)[0] : "";
+        // 優先從已載入之 591 在售資料庫搜尋比對真實案源
+        let matchedReal = null;
+        if (houseId) {
+          matchedReal = onsaleListings.find(x => x.houseId == houseId || x.id == `591-${houseId}`);
+        }
+        if (!matchedReal && val.length >= 2) {
+          matchedReal = onsaleListings.find(x => x.title.includes(val) || x.district.includes(val) || (x.circle && x.circle.includes(val)));
+        }
+
+        if (matchedReal) {
+          item591 = { ...matchedReal };
+        } else {
+          houseId = houseId || "16888";
+          let matchedDist = "東區";
+          let distCoords = { lat: 22.9960, lng: 120.2350, circle: "平實營區重劃區", regUnit: 35.2 };
+          const districtSamples = {
+            "東": { lat: 22.9855, lng: 120.2307, circle: "東區平實成大文教圈", regUnit: 35.2 },
+            "中西": { lat: 22.9922, lng: 120.2014, circle: "中西區府前美術館特區", regUnit: 33.4 },
+            "南": { lat: 22.965, lng: 120.19, circle: "南區舉喜86綠能重劃圈", regUnit: 24.5 },
+            "北": { lat: 23.01, lng: 120.205, circle: "北區鄭子寮低密度豪宅圈", regUnit: 32.5 },
+            "安平": { lat: 22.9921, lng: 120.1685, circle: "安平港灣五期特區", regUnit: 31.8 },
+            "安南": { lat: 23.045, lng: 120.185, circle: "安南九份子水岸綠能特區", regUnit: 28.6 },
+            "永康": { lat: 23.025, lng: 120.254, circle: "永康大橋/市政文教特區", regUnit: 28.2 },
+            "善化": { lat: 23.132, lng: 120.296, circle: "善化南科LM重劃特區", regUnit: 33.1 },
+            "新市": { lat: 23.078, lng: 120.295, circle: "新市南科迎曦湖特區", regUnit: 31.5 },
+            "安定": { lat: 23.102, lng: 120.238, circle: "安定蘇厝南科生活特區", regUnit: 26.5 },
+            "歸仁": { lat: 22.9255, lng: 120.286, circle: "歸仁沙崙高鐵綠能特區", regUnit: 27.8 },
+            "仁德": { lat: 22.972, lng: 120.252, circle: "仁德交流道文心生活圈", regUnit: 26.0 },
+            "新營": { lat: 23.31, lng: 120.317, circle: "新營火車站民治綠都心圈", regUnit: 23.5 },
+            "鹽水": { lat: 23.321, lng: 120.266, circle: "鹽水月津港親水特區", regUnit: 18.5 },
+            "白河": { lat: 23.351, lng: 120.415, circle: "白河蓮鄉溫泉觀光圈", regUnit: 17.0 },
+            "柳營": { lat: 23.276, lng: 120.313, circle: "柳營奇美生活圈", regUnit: 18.0 },
+            "後壁": { lat: 23.366, lng: 120.362, circle: "後壁無米樂觀光特區", regUnit: 16.0 },
+            "東山": { lat: 23.325, lng: 120.404, circle: "東山咖啡產業文化圈", regUnit: 15.5 },
+            "佳里": { lat: 23.164, lng: 120.176, circle: "佳里進學體育公園圈", regUnit: 23.0 },
+            "麻豆": { lat: 23.184, lng: 120.248, circle: "麻豆轉運站市心圓環商圈", regUnit: 22.5 },
+            "西港": { lat: 23.123, lng: 120.203, circle: "西港市心慶安宮商圈", regUnit: 22.0 },
+            "七股": { lat: 23.142, lng: 120.142, circle: "七股鹽田濱海風情特區", regUnit: 16.0 },
+            "將軍": { lat: 23.1995, lng: 120.157, circle: "將軍漁港濱海風情圈", regUnit: 15.0 },
+            "北門": { lat: 23.268, lng: 120.125, circle: "北門水晶教堂觀光園區", regUnit: 14.0 },
+            "學甲": { lat: 23.232, lng: 120.18, circle: "學甲市心中洲商圈", regUnit: 17.5 },
+            "六甲": { lat: 23.2325, lng: 120.3495, circle: "六甲區公所生活圈", regUnit: 18.5 },
+            "下營": { lat: 23.235, lng: 120.264, circle: "下營上帝廟商圈", regUnit: 18.0 },
+            "官田": { lat: 23.195, lng: 120.325, circle: "官田隆田車站生活圈", regUnit: 19.5 },
+            "大內": { lat: 23.12, lng: 120.353, circle: "大內南瀛天文館園區圈", regUnit: 16.0 },
+            "山上": { lat: 23.1025, lng: 120.354, circle: "山上水道博物館園區", regUnit: 18.0 },
+            "新化": { lat: 23.0384, lng: 120.3106, circle: "新化老街文創生活圈", regUnit: 24.0 },
+            "關廟": { lat: 22.962, lng: 120.328, circle: "關廟市心公所生活圈", regUnit: 21.5 },
+            "龍崎": { lat: 22.9645, lng: 120.361, circle: "龍崎虎形山自然休閒圈", regUnit: 12.0 },
+            "玉井": { lat: 23.124, lng: 120.46, circle: "玉井芒菓山城樂活圈", regUnit: 16.5 },
+            "楠西": { lat: 23.173, lng: 120.485, circle: "楠西水庫觀光休閒圈", regUnit: 14.5 },
+            "南化": { lat: 23.0435, lng: 120.477, circle: "南化水庫生態風景特區", regUnit: 13.5 },
+            "左鎮": { lat: 23.0581, lng: 120.4074, circle: "左鎮化石園區文教特區", regUnit: 15.0 },
+          };
+          for (const [k, d] of Object.entries(districtSamples)) {
+            if (val.includes(k)) {
+              matchedDist = k.endsWith("區") ? k : `${k}區`;
+              distCoords = d;
+              break;
+            }
+          }
+
+          item591 = {
+            id: `591-${houseId}`,
+            title: `591在售案 (編號#${houseId})・${matchedDist}${distCoords.circle}景觀宅`,
+            district: matchedDist,
+            circle: distCoords.circle,
+            layout: "3房2廳2衛",
+            ping: 42.5,
+            askTotal: 1880,
+            askUnit: 44.2,
+            regUnit: distCoords.regUnit,
+            diffPct: Number(((44.2 - distCoords.regUnit) / distCoords.regUnit * 100).toFixed(1)),
+            priceDiffWan: Number((44.2 - distCoords.regUnit).toFixed(1)),
+            lat: distCoords.lat,
+            lng: distCoords.lng,
+            sourceUrl: val.startsWith('http') ? val : `https://sale.591.com.tw/home/house/detail/2/${houseId}.html`,
+            transitProject: `近${matchedDist}主要聯外幹道與未來公共交通樞紐`,
+            rezoningArea: `${matchedDist}${distCoords.circle}`,
+            liquefaction: (matchedDist === '安南區' || matchedDist === '安平區') ? "🔴 高潛勢（沿海沖積回填區・建案均施作基樁打入岩盤）" : "🟢 低潛勢（地層穩固・抗震安全優）",
+            floodRisk: "🟢 安全優質（市府區域防洪完備・一般暴雨無虞）",
+            seismicNote: "🛡️ 921後新法規耐震標準・RC鋼筋混凝土結構",
+            nearestSchool: "國立成功大學 / 在地明星學校",
+            schoolDistText: "車程約 4 分鐘 (1.5km)",
+            nearestMall: "南紡購物中心 / 連鎖量販商圈",
+            mallDistText: "車程約 5 分鐘 (1.8km)"
+          };
+        }
       }
 
       const targetLow = Math.round(item591.askTotal * 0.88);
       const targetHigh = Math.round(item591.askTotal * 0.92);
       const targetUnit = (targetLow / item591.ping).toFixed(1);
+      const sign = item591.diffPct > 0 ? '+' : '';
 
       item591.vipTargetPrice = `${targetLow.toLocaleString()} 萬 ~ ${targetHigh.toLocaleString()} 萬 (約 ${targetUnit} 萬/坪)`;
-      item591.vipPriceHistory = `同社區/同路段近一年實登成交均價約 ${item591.regUnit} 萬/坪，本案 591 開價 ${item591.askUnit} 萬/坪，開價溢價幅度達 +${item591.diffPct}%，具備顯著議價折讓空間！`;
-      item591.vipNegotiationTip = `建議勿照 591 開價追高，以周邊實登均價折讓點 ${targetLow} 萬 (約 ${targetUnit} 萬/坪) 作為首輪斡旋進場點，直接爭取約 ${item591.askTotal - targetLow} 萬殺價破口！`;
-      item591.aiBadge = `🏷️ 591在售開價 (溢價 +${item591.diffPct}%)`;
+      item591.vipPriceHistory = item591.diffPct <= 0
+        ? `同社區/同路段近一年實登成交均價約 ${item591.regUnit} 萬/坪，本案 591 開價 ${item591.askUnit} 萬/坪，每坪低於均價 ${Math.abs(item591.priceDiffWan)} 萬 (${item591.diffPct}%)，價格具備顯著讓利優勢！`
+        : `同社區/同路段近一年實登成交均價約 ${item591.regUnit} 萬/坪，本案 591 開價 ${item591.askUnit} 萬/坪，開價溢價幅度達 +${item591.diffPct}%，具備顯著議價折讓空間！`;
+      item591.vipNegotiationTip = item591.diffPct <= 0
+        ? `本案開價已低於實登行情，建議以 ${targetLow} 萬 (約 ${targetUnit} 萬/坪) 作為首輪下斡旋參考點，儘速鎖定優質讓利案源！`
+        : `建議勿照 591 開價追高，以周邊實登均價折讓點 ${targetLow} 萬 (約 ${targetUnit} 萬/坪) 作為首輪斡旋進場點，直接爭取約 ${item591.askTotal - targetLow} 萬殺價破口！`;
+      item591.aiBadge = item591.diffPct <= 0
+        ? `🔥 591讓利案（低於實登 ${Math.abs(item591.diffPct)}%）`
+        : `🏷️ 591在售開價 (溢價 +${item591.diffPct}%)`;
       item591.rentEst = Math.round((item591.askTotal * 10000 * 0.024 / 12) / 500) * 500;
       item591.grossYield = Number(((item591.rentEst * 12) / (item591.askTotal * 10000) * 100).toFixed(2));
       item591.monthlyMortgage = Math.round(item591.askTotal * 10000 * 0.8 * 0.003789);
@@ -842,12 +1010,30 @@
       active591Layer.clearLayers();
       const pinIcon = L.divIcon({
         className: '',
-        html: `<div class="pin-591">🏷️ 591在售: ${item591.district} ${item591.askUnit}萬 (+${item591.diffPct}%)</div>`,
+        html: `<div class="pin-591">🏷️ 591在售: ${item591.district} ${item591.askUnit}萬 (${sign}${item591.diffPct}%)</div>`,
         iconAnchor: [55, 15]
       });
 
       const m591 = L.marker([item591.lat, item591.lng], { icon: pinIcon }).addTo(active591Layer);
       m591.bindPopup(() => buildPopupCardHtml(item591), { maxWidth: Math.min(340, window.innerWidth - 32) });
+
+      if (CAN_HOVER) {
+        m591.on('mouseover', function () {
+          clearTimeout(popupCloseTimer);
+          this.openPopup();
+        });
+        m591.on('mouseout', function () {
+          popupCloseTimer = setTimeout(() => {
+            if (!isCursorOnPopup) m591.closePopup();
+          }, 350);
+        });
+      }
+
+      m591.on('click', function () {
+        selectedItem = item591;
+        renderDetail();
+        closeMobilePanels();
+      });
 
       map.setView([item591.lat, item591.lng], 15);
       setTimeout(() => {
@@ -859,7 +1045,9 @@
     };
 
     window.quickTest591 = function (type) {
+      const inputEl = document.getElementById('input591Url');
       if (type === 'pingshih') {
+        if (inputEl) inputEl.value = "東區平實營區景觀3房 (591-pingshih)";
         window.parse591Listing({
           id: "591-pingshih",
           title: "591在售案：平實營區景觀3房 (開價比對實登)",
@@ -886,6 +1074,7 @@
           mallDistText: "步行約 4 分鐘 (350m)"
         });
       } else if (type === 'jiufenzhi') {
+        if (inputEl) inputEl.value = "安南區九份子水岸高樓 (591-jiufenzhi)";
         window.parse591Listing({
           id: "591-jiufenzhi",
           title: "591在售案：九份子水岸生態高樓景觀宅",
@@ -912,6 +1101,7 @@
           mallDistText: "車程約 6 分鐘 (2.4km)"
         });
       } else if (type === 'nanke') {
+        if (inputEl) inputEl.value = "善化南科LM蓮潭別墅 (591-nanke)";
         window.parse591Listing({
           id: "591-nanke",
           title: "591在售案：南科 LM 特區蓮潭科技別墅",
@@ -1046,6 +1236,7 @@
         renderOnsaleMarkers();
         if (!map.hasLayer(onsaleClusterGroup)) onsaleClusterGroup.addTo(map);
       } else {
+        map.closePopup();
         map.removeLayer(onsaleClusterGroup);
       }
       updateActiveLayerCount();
@@ -1188,6 +1379,9 @@
 
     function renderMarkers() {
       clusterGroup.clearLayers();
+      const toggleEl = document.getElementById('toggleRegistration');
+      if (toggleEl && !toggleEl.checked) return;
+
       const currentDist = document.getElementById('districtFilter') ? document.getElementById('districtFilter').value : 'ALL';
       const items = currentDist === 'ALL'
         ? allListings
@@ -1321,7 +1515,7 @@
         rezoningArea: rezoningArea,
         sourceUrl: raw.sourceUrl || `https://sale.591.com.tw/?regionid=15&keyword=${encodeURIComponent(district)}`,
         vipTargetPrice: raw.vipTargetPrice || `${targetLow.toLocaleString()} 萬 ~ ${targetHigh.toLocaleString()} 萬 (約 ${targetUnit} 萬/坪)`,
-        vipPriceHistory: raw.vipPriceHistory || (priceDiffWan <= 0 ? `${district}近一年實登均價約 ${regUnit} 萬/坪，本案每坪低於均價 ${Math.abs(priceDiffWan)} 萬，折讓顯著。` : `${district}近一年實登均價約 ${regUnit} 萬/坪，本案每坪高於均價 ${priceDiffWan} 萬，建議參考實登切入議價。`),
+        vipPriceHistory: raw.vipPriceHistory || (priceDiffWan < 0 ? `${district}近一年實登均價約 ${regUnit} 萬/坪，本案每坪低於均價 ${Math.abs(priceDiffWan)} 萬，折讓顯著。` : (priceDiffWan === 0 ? `${district}近一年實登均價約 ${regUnit} 萬/坪，本案每坪平貼實登均價 (${regUnit} 萬/坪)，符合市場行情。` : `${district}近一年實登均價約 ${regUnit} 萬/坪，本案每坪高於均價 ${priceDiffWan} 萬，建議參考實登切入議價。`)),
         vipNegotiationTip: raw.vipNegotiationTip || `同路段近一年均價約 ${regUnit} 萬/坪，建議以 ${targetUnit} 萬/坪 (${targetLow} 萬) 作為首輪下斡旋底價破口！`
       };
     }
@@ -1331,7 +1525,7 @@
     // ==========================================
     window.scrollToDetail = function (id) {
       map.closePopup();
-      const item = allListings.find(x => x.id === id) || onsaleListings.find(x => x.id === id);
+      const item = allListings.find(x => x.id === id) || onsaleListings.find(x => x.id === id) || (selectedItem && selectedItem.id === id ? selectedItem : null);
       if (item) {
         selectedItem = item;
         renderDetail();
@@ -1350,9 +1544,11 @@
         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
         : (isCaution ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40');
 
-      const diffTag = item.diffPct <= 0
+      const diffTag = item.diffPct < 0
         ? `<span class="text-emerald-400 font-bold">🟢 每坪低於均價 ${Math.abs(item.priceDiffWan)} 萬 (${item.diffPct}%)</span>`
-        : `<span class="text-rose-400 font-bold">🔴 每坪高於均價 ${item.priceDiffWan} 萬 (+${item.diffPct}%)</span>`;
+        : (item.diffPct === 0
+          ? `<span class="text-sky-400 font-bold">🔵 每坪平貼均價 (0.0%)</span>`
+          : `<span class="text-rose-400 font-bold">🔴 每坪高於均價 ${item.priceDiffWan} 萬 (+${item.diffPct}%)</span>`);
 
       // 手機版精簡卡片 (高度 200~240px，絕不截斷，點擊即平滑捲動至下方詳情)
       if (window.innerWidth < 768) {
@@ -1516,15 +1712,24 @@
           }
         }
 
-        // O(N) 統計各行政區筆數
+        const regBadge = document.getElementById('regCountBadge');
+        if (regBadge) regBadge.textContent = `共 ${allListings.length} 筆官方實登`;
+        const saleBadge = document.getElementById('onsaleCountBadge');
+        if (saleBadge) saleBadge.textContent = `共 ${onsaleListings.length} 筆最新在售`;
+
+        // O(N) 統計各行政區筆數並依案源總數由大到小排序
         const regCountMap = {};
         const saleCountMap = {};
         allListings.forEach(x => { regCountMap[x.district] = (regCountMap[x.district] || 0) + 1; });
         onsaleListings.forEach(x => { saleCountMap[x.district] = (saleCountMap[x.district] || 0) + 1; });
 
-        const allDistricts = [...new Set([...Object.keys(regCountMap), ...Object.keys(saleCountMap)])];
+        const allDistricts = [...new Set([...Object.keys(regCountMap), ...Object.keys(saleCountMap)])].sort((a, b) => {
+          const totalA = (regCountMap[a] || 0) + (saleCountMap[a] || 0);
+          const totalB = (regCountMap[b] || 0) + (saleCountMap[b] || 0);
+          return totalB - totalA;
+        });
         const selectEl = document.getElementById('districtFilter');
-        selectEl.innerHTML = '<option value="ALL">📍 全台南市</option>';
+        selectEl.innerHTML = `<option value="ALL">📍 全台南市 (${allListings.length}/${onsaleListings.length})</option>`;
         allDistricts.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d;
@@ -1534,8 +1739,8 @@
           selectEl.appendChild(opt);
         });
 
-        if (filteredListings.length > 0) {
-          selectedItem = filteredListings[0];
+        if (allListings.length > 0 || onsaleListings.length > 0) {
+          selectedItem = filteredListings[0] || onsaleListings[0];
           renderMarkers();
           renderOnsaleMarkers();
           renderDetail();
@@ -1546,14 +1751,29 @@
     }
 
     window.filterByDistrict = function () {
+      map.closePopup();
       const val = document.getElementById('districtFilter').value;
-      filteredListings = val === 'ALL' ? [...allListings] : allListings.filter(x => x.district === val);
-      if (filteredListings.length > 0) {
-        selectedItem = filteredListings[0];
-        map.setView([selectedItem.lat, selectedItem.lng], val === 'ALL' ? 12 : 14);
-        renderMarkers();
-        renderOnsaleMarkers();
+      if (val === 'ALL') {
+        filteredListings = [...allListings];
+        selectedItem = filteredListings[0] || onsaleListings[0] || null;
+        map.setView([23.005, 120.215], 12);
+      } else {
+        filteredListings = allListings.filter(x => x.district === val);
+        const districtSales = onsaleListings.filter(x => x.district === val);
+        selectedItem = filteredListings[0] || districtSales[0] || null;
+        if (selectedItem) {
+          map.setView([selectedItem.lat, selectedItem.lng], 14);
+        }
+      }
+      renderMarkers();
+      renderOnsaleMarkers();
+      if (selectedItem) {
         renderDetail();
+      } else {
+        const detailEl = document.getElementById('detailPanel');
+        if (detailEl) {
+          detailEl.innerHTML = `<div class="p-8 text-center text-slate-400"><p class="text-sm">📍 本行政區目前無符合物件</p></div>`;
+        }
       }
     };
 
@@ -1572,10 +1792,11 @@
         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
         : (isCaution ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40');
 
-      const isDiffBetter = item.diffPct <= 0;
-      const diffTag = isDiffBetter
+      const diffTag = item.diffPct < 0
         ? `<span class="text-emerald-400 font-bold">🟢 每坪低於均價 ${Math.abs(item.priceDiffWan)} 萬 (${item.diffPct}%)</span>`
-        : `<span class="text-rose-400 font-bold">🔴 每坪高於均價 ${item.priceDiffWan} 萬 (+${item.diffPct}%)</span>`;
+        : (item.diffPct === 0
+          ? `<span class="text-sky-400 font-bold">🔵 每坪平貼均價 (0.0%)</span>`
+          : `<span class="text-rose-400 font-bold">🔴 每坪高於均價 ${item.priceDiffWan} 萬 (+${item.diffPct}%)</span>`);
 
       detailEl.innerHTML = `
         <div class="space-y-4">
@@ -1745,8 +1966,8 @@
               對本案有興趣？我們的台南在地專業顧問團隊可協助調閱產權謄本、現場陪同帶看並制定精準殺價斡旋策略。
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input type="text" id="leadName" placeholder="您的尊稱 (例: 林先生)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 w-full" />
-              <input type="text" id="leadPhone" placeholder="聯絡電話 / LINE ID" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 w-full" />
+              <input type="text" id="leadName" aria-label="您的尊稱" autocomplete="name" placeholder="您的尊稱 (例: 林先生)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 w-full" onkeydown="if(event.key==='Enter') submitLead()" />
+              <input type="tel" id="leadPhone" aria-label="聯絡電話或 LINE ID" autocomplete="tel" inputmode="tel" placeholder="聯絡電話 / LINE ID" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 w-full" onkeydown="if(event.key==='Enter') submitLead()" />
             </div>
             <button onclick="submitLead()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-600/40 font-black py-2.5 px-4 rounded-xl shadow transition text-xs sm:text-sm">
               ✉️ 免費預約顧問諮詢服務
@@ -1759,23 +1980,77 @@
     // ==========================================
     // VIP 通行碼驗證與金流模組
     // ==========================================
+    let lastFocusedElement = null;
+    function handleModalKeyDown(e) {
+      if (e.key === 'Escape') {
+        closeVipModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const modal = document.getElementById('vipModal');
+        if (!modal || modal.classList.contains('hidden')) return;
+        const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
     window.openVipModal = function () {
-      document.getElementById('vipModal').classList.remove('hidden');
+      lastFocusedElement = document.activeElement;
+      const modal = document.getElementById('vipModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        const input = document.getElementById('vipCodeInput');
+        if (input) setTimeout(() => input.focus(), 60);
+      }
+      window.addEventListener('keydown', handleModalKeyDown);
     };
 
     window.closeVipModal = function () {
-      document.getElementById('vipModal').classList.add('hidden');
+      const modal = document.getElementById('vipModal');
+      if (modal) modal.classList.add('hidden');
+      window.removeEventListener('keydown', handleModalKeyDown);
+      if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+        try { lastFocusedElement.focus(); } catch (e) {}
+      }
     };
+
+    const vipModalEl = document.getElementById('vipModal');
+    if (vipModalEl) {
+      vipModalEl.addEventListener('click', function (e) {
+        if (e.target === this) closeVipModal();
+      });
+    }
 
     window.verifyVipCode = function () {
       const code = document.getElementById('vipCodeInput').value.trim().toUpperCase();
       if (code === 'TAINAN888' || code === 'VIP888' || code === 'WOFGA2026') {
-        localStorage.setItem("wofga_vip", "true");
+        setStoredVip(true);
         isVip = true;
         alert("🎉 恭喜！VIP 通行碼驗證成功，全站 AI 殺價斡旋模型與進階數據已全部解鎖！");
         closeVipModal();
-        document.getElementById('vipBadge').innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
-        document.getElementById('unlockBtn').classList.add('hidden');
+        const badge = document.getElementById('vipBadge');
+        if (badge) badge.innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員</span>`;
+        const unlockBtn = document.getElementById('unlockBtn');
+        if (unlockBtn) unlockBtn.classList.add('hidden');
+        renderDetail();
+      } else if (code === 'RESET' || code === 'GUEST') {
+        setStoredVip(false);
+        isVip = false;
+        alert("已重設身分為一般訪客。");
+        closeVipModal();
+        const badge = document.getElementById('vipBadge');
+        if (badge) badge.innerHTML = `身分：<span class="font-bold text-amber-400 ml-1">一般訪客</span>`;
+        const unlockBtn = document.getElementById('unlockBtn');
+        if (unlockBtn) unlockBtn.classList.remove('hidden');
         renderDetail();
       } else {
         alert("❌ 通行碼錯誤或已過期，請重新輸入。或洽客服領取專案解鎖碼！");
@@ -1795,19 +2070,26 @@
     };
 
     window.selectAndUnlock = function (id) {
-      const target = allListings.find(x => x.id === id) || onsaleListings.find(x => x.id === id);
+      const target = allListings.find(x => x.id === id) || onsaleListings.find(x => x.id === id) || (selectedItem && selectedItem.id === id ? selectedItem : null);
       if (target) {
         selectedItem = target;
         renderDetail();
       }
       if (!isVip) {
         openVipModal();
+      } else {
+        const el = document.getElementById('detailPanel');
+        if (el && window.innerWidth < 1024) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     };
 
     if (isVip) {
-      document.getElementById('vipBadge').innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員 (已全站解鎖)</span>`;
-      document.getElementById('unlockBtn').classList.add('hidden');
+      const badge = document.getElementById('vipBadge');
+      if (badge) badge.innerHTML = `目前身分：<span class="font-bold text-emerald-400">👑 尊榮 VIP 會員</span>`;
+      const unlockBtn = document.getElementById('unlockBtn');
+      if (unlockBtn) unlockBtn.classList.add('hidden');
     }
 
     fetchListings();

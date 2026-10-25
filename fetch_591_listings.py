@@ -21,7 +21,11 @@ import time
 import hashlib
 from bs4 import BeautifulSoup
 
-sys.stdout.reconfigure(encoding='utf-8')
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 ctx = ssl._create_unverified_context()
 headers = {
@@ -30,110 +34,302 @@ headers = {
 }
 
 DISTRICT_MAP = {
-    "善化區": {
-        "sid": 238, "lat": 23.1322, "lng": 120.2968, "reg": 33.1,
-        "circle": "南科LM特區/善化車站",
-        "transit": "近南科火車站・捷運深藍線南科走廊",
-        "rezoning": "善化南科LM重劃特區",
-        "school": "南科國際實驗高中/國中小",
-        "mall": "善化中山路商圈/全聯旗艦店"
-    },
     "東區": {
         "sid": 206, "lat": 22.9855, "lng": 120.2307, "reg": 35.2,
-        "circle": "平實營區/成大文教圈",
-        "transit": "距捷運第一期藍線 B05 平實轉運站約 3 分鐘",
+        "circle": "東區平實成大文教圈",
+        "transit": "距離平實轉運站步行 3 分鐘",
         "rezoning": "平實營區市地重劃區旗艦核心",
-        "school": "國立成功大學 / 台南一中",
+        "school": "復興國中/成功大學優質學區",
         "mall": "南紡購物中心"
-    },
-    "永康區": {
-        "sid": 212, "lat": 23.0264, "lng": 120.2570, "reg": 28.2,
-        "circle": "大橋東橋特區/市立總圖/永康核心",
-        "transit": "近台南捷運藍線 B01 大橋雙鐵共構樞紐",
-        "rezoning": "永康大橋/東橋文教重劃特區",
-        "school": "永康國中 / 國立台南大學附中",
-        "mall": "永康中華路商圈/家樂福"
-    },
-    "安南區": {
-        "sid": 211, "lat": 23.0482, "lng": 120.1843, "reg": 28.6,
-        "circle": "九份子低碳/科工區特區",
-        "transit": "北外環快速道路 15 分鐘直抵南科台積電 18 廠",
-        "rezoning": "九份子水岸低碳示範重劃區",
-        "school": "九份子雙語生態中小學",
-        "mall": "好市多 Costco 台南店"
-    },
-    "北區": {
-        "sid": 209, "lat": 23.0118, "lng": 120.2045, "reg": 32.5,
-        "circle": "鄭子寮重劃/好市多商圈",
-        "transit": "海安路林蔭大道・北外環中華北路匝道",
-        "rezoning": "鄭子寮低密度花園重劃區",
-        "school": "文元國小 / 民德國中",
-        "mall": "好市多 Costco / 大潤發"
-    },
-    "安平區": {
-        "sid": 210, "lat": 22.9981, "lng": 120.1652, "reg": 31.8,
-        "circle": "五期重劃/國平遊艇特區",
-        "transit": "安平港聯外快速道路・未來捷運綠線走廊",
-        "rezoning": "安平五期/國平遊艇港灣重劃特區",
-        "school": "慈濟完全中學 / 安平國小",
-        "mall": "新光三越新天地 / 安平家樂福"
     },
     "中西區": {
         "sid": 208, "lat": 22.9922, "lng": 120.2014, "reg": 33.4,
-        "circle": "湖美特區/南美館星鑽圈",
-        "transit": "台南火車站核心商圈・府前路林蔭主軸",
-        "rezoning": "中國城運河星鑽特區 / 湖美豪宅特區",
-        "school": "台南女中 / 建興國中",
+        "circle": "中西區府前美術館特區",
+        "transit": "距離藍晒圖/公車核心站步行 3 分鐘",
+        "rezoning": "中西區核心重劃/生活特區",
+        "school": "建興國中/忠義國小明星學區",
         "mall": "新光三越西門新天地"
     },
-    "新市區": {
-        "sid": 241, "lat": 23.0782, "lng": 120.2925, "reg": 31.5,
-        "circle": "新市車站/南科外溢圈",
-        "transit": "新市火車站・台一線直通南科迎曦湖",
-        "rezoning": "新市既成核心商圈 / 新和重劃區",
-        "school": "新市國小 / 南科實中國小部",
-        "mall": "新市中正路生活商圈"
-    },
-    "歸仁區": {
-        "sid": 213, "lat": 22.9678, "lng": 120.2938, "reg": 27.8,
-        "circle": "沙崙智慧綠能高鐵特區",
-        "transit": "高鐵台南站・台鐵沙崙站雙鐵樞紐",
-        "rezoning": "沙崙智慧綠能科學城特區",
-        "school": "沙崙雙語K-12示範學校",
-        "mall": "MITSUI OUTLET PARK 台南三井"
-    },
     "南區": {
-        "sid": 207, "lat": 22.9602, "lng": 120.1902, "reg": 24.5,
-        "circle": "水交社文創/舉喜重劃區",
-        "transit": "台86快速道路・西濱快速道路串聯",
-        "rezoning": "水交社重劃區 / 舉喜重劃區",
-        "school": "志開實驗小學 / 大成國中",
-        "mall": "碳佐麻里新興園區 / 誠品生活"
+        "sid": 207, "lat": 22.965, "lng": 120.19, "reg": 24.5,
+        "circle": "南區舉喜86綠能重劃圈",
+        "transit": "距離86快速道路/公車站步行 5 分鐘",
+        "rezoning": "南區核心重劃/生活特區",
+        "school": "舉喜重劃區/新興國中學區",
+        "mall": "南區主要商圈/連鎖量販"
+    },
+    "北區": {
+        "sid": 209, "lat": 23.01, "lng": 120.205, "reg": 32.5,
+        "circle": "北區鄭子寮低密度豪宅圈",
+        "transit": "距離台南火車站/轉運站車程 5 分鐘",
+        "rezoning": "北區核心重劃/生活特區",
+        "school": "文元國小/民德國中明星學區",
+        "mall": "好市多 Costco / 大潤發"
+    },
+    "安平區": {
+        "sid": 210, "lat": 22.9921, "lng": 120.1685, "reg": 31.8,
+        "circle": "安平港灣五期特區",
+        "transit": "距離輕軌預定站/公車站步行 4 分鐘",
+        "rezoning": "安平五期/國平遊艇港灣重劃特區",
+        "school": "億載國小/慈濟高中學區",
+        "mall": "新光三越新天地 / 安平家樂福"
+    },
+    "安南區": {
+        "sid": 211, "lat": 23.045, "lng": 120.185, "reg": 28.6,
+        "circle": "安南九份子水岸綠能特區",
+        "transit": "距離北外環快速道路匝道車程 4 分鐘",
+        "rezoning": "九份子水岸低碳示範重劃區",
+        "school": "九份子國中小雙語生態學區",
+        "mall": "好市多 Costco 台南店"
+    },
+    "永康區": {
+        "sid": 212, "lat": 23.025, "lng": 120.254, "reg": 28.2,
+        "circle": "永康大橋/市政文教特區",
+        "transit": "距離大橋火車站/公車站步行 5 分鐘",
+        "rezoning": "永康大橋/東橋文教重劃特區",
+        "school": "大橋國中/永康總圖明星學區",
+        "mall": "永康中華路商圈/家樂福"
+    },
+    "善化區": {
+        "sid": 238, "lat": 23.132, "lng": 120.296, "reg": 33.1,
+        "circle": "善化南科LM重劃特區",
+        "transit": "距離善化火車站/南科巡迴巴士步行 5 分鐘",
+        "rezoning": "善化南科LM重劃特區",
+        "school": "LM特區蓮潭國中小明星學區",
+        "mall": "善化中山路商圈/全聯旗艦店"
+    },
+    "新市區": {
+        "sid": 241, "lat": 23.078, "lng": 120.295, "reg": 31.5,
+        "circle": "新市南科迎曦湖特區",
+        "transit": "距離南科火車站/園區巴士步行 4 分鐘",
+        "rezoning": "新市區核心重劃/生活特區",
+        "school": "新市國小/南科實中學區圈",
+        "mall": "新市區主要商圈/連鎖量販"
     },
     "安定區": {
-        "sid": 242, "lat": 23.1070, "lng": 120.2370, "reg": 26.5,
-        "circle": "安定交流道/南科西側生活圈",
-        "transit": "國道一號安定交流道・市道178線直通南科",
-        "rezoning": "安定南科外溢生活圈",
-        "school": "安定國小 / 安定國中",
-        "mall": "安定農會商圈"
+        "sid": 242, "lat": 23.102, "lng": 120.238, "reg": 26.5,
+        "circle": "安定蘇厝南科生活特區",
+        "transit": "距離國道8號交流道車程 3 分鐘",
+        "rezoning": "安定區核心重劃/生活特區",
+        "school": "安定國小/安定國中學區",
+        "mall": "安定區主要商圈/連鎖量販"
+    },
+    "歸仁區": {
+        "sid": 213, "lat": 22.9255, "lng": 120.286, "reg": 27.8,
+        "circle": "歸仁沙崙高鐵綠能特區",
+        "transit": "距離台南高鐵站/沙崙捷運站步行 5 分鐘",
+        "rezoning": "沙崙智慧綠能科學城特區",
+        "school": "沙崙K12雙語學校/交大台南校區",
+        "mall": "MITSUI OUTLET PARK 台南三井"
     },
     "仁德區": {
-        "sid": 219, "lat": 22.9710, "lng": 120.2520, "reg": 26.0,
-        "circle": "仁德交流道/家樂福商圈",
-        "transit": "國道一號仁德交流道・東門路延伸段",
-        "rezoning": "仁德家樂福特力屋商圈",
-        "school": "仁德國中 / 仁德國小",
+        "sid": 219, "lat": 22.972, "lng": 120.252, "reg": 26.0,
+        "circle": "仁德交流道文心生活圈",
+        "transit": "距離國道一號仁德交流道車程 3 分鐘",
+        "rezoning": "仁德區核心重劃/生活特區",
+        "school": "仁德中洲國小/嘉南藥理大學",
         "mall": "家樂福仁德店 / 特力屋"
     },
+    "新營區": {
+        "sid": None, "lat": 23.31, "lng": 120.317, "reg": 23.5,
+        "circle": "新營火車站民治綠都心圈",
+        "transit": "距離新營火車站步行 4 分鐘",
+        "rezoning": "新營區核心重劃/生活特區",
+        "school": "新營國小/南新國中明星學區",
+        "mall": "新營區主要商圈/連鎖量販"
+    },
+    "鹽水區": {
+        "sid": None, "lat": 23.321, "lng": 120.266, "reg": 18.5,
+        "circle": "鹽水月津港親水特區",
+        "transit": "距離月津港公車站步行 3 分鐘",
+        "rezoning": "鹽水區核心重劃/生活特區",
+        "school": "鹽水國小百年校園",
+        "mall": "鹽水區主要商圈/連鎖量販"
+    },
+    "白河區": {
+        "sid": None, "lat": 23.351, "lng": 120.415, "reg": 17.0,
+        "circle": "白河蓮鄉溫泉觀光圈",
+        "transit": "距離白河客運轉運站步行 4 分鐘",
+        "rezoning": "白河區核心重劃/生活特區",
+        "school": "白河國小/白河國中",
+        "mall": "白河區主要商圈/連鎖量販"
+    },
+    "柳營區": {
+        "sid": None, "lat": 23.276, "lng": 120.313, "reg": 18.0,
+        "circle": "柳營奇美生活圈",
+        "transit": "距離柳營火車站車程 3 分鐘",
+        "rezoning": "柳營區核心重劃/生活特區",
+        "school": "柳營國小/敏惠醫專",
+        "mall": "柳營區主要商圈/連鎖量販"
+    },
+    "後壁區": {
+        "sid": None, "lat": 23.366, "lng": 120.362, "reg": 16.0,
+        "circle": "後壁無米樂觀光特區",
+        "transit": "距離後壁火車站步行 4 分鐘",
+        "rezoning": "後壁區核心重劃/生活特區",
+        "school": "後壁國小/後壁高中",
+        "mall": "後壁區主要商圈/連鎖量販"
+    },
+    "東山區": {
+        "sid": None, "lat": 23.325, "lng": 120.404, "reg": 15.5,
+        "circle": "東山咖啡產業文化圈",
+        "transit": "距離市道99號聯絡道車程 3 分鐘",
+        "rezoning": "東山區核心重劃/生活特區",
+        "school": "東山國小/東山國中",
+        "mall": "東山區主要商圈/連鎖量販"
+    },
+    "佳里區": {
+        "sid": None, "lat": 23.164, "lng": 120.176, "reg": 23.0,
+        "circle": "佳里進學體育公園圈",
+        "transit": "距離佳里公車客運總站步行 3 分鐘",
+        "rezoning": "佳里區核心重劃/生活特區",
+        "school": "進學國小/佳里國中優質學區",
+        "mall": "佳里區主要商圈/連鎖量販"
+    },
     "麻豆區": {
-        "sid": 223, "lat": 23.1820, "lng": 120.2480, "reg": 22.5,
-        "circle": "麻豆交流道/首府生活圈",
-        "transit": "國道一號麻豆交流道・市道176線",
-        "rezoning": "麻豆交流道周邊生活圈",
-        "school": "麻豆國小 / 黎明中學",
-        "mall": "麻豆市區核心商圈"
-    }
+        "sid": 223, "lat": 23.184, "lng": 120.248, "reg": 22.5,
+        "circle": "麻豆轉運站市心圓環商圈",
+        "transit": "距離麻豆公車轉運站步行 3 分鐘",
+        "rezoning": "麻豆區核心重劃/生活特區",
+        "school": "培文國小/麻豆國中學區",
+        "mall": "麻豆區主要商圈/連鎖量販"
+    },
+    "西港區": {
+        "sid": None, "lat": 23.123, "lng": 120.203, "reg": 22.0,
+        "circle": "西港市心慶安宮商圈",
+        "transit": "距離西港公車站步行 3 分鐘",
+        "rezoning": "西港區核心重劃/生活特區",
+        "school": "西港國小/西港國中學區",
+        "mall": "西港區主要商圈/連鎖量販"
+    },
+    "七股區": {
+        "sid": None, "lat": 23.142, "lng": 120.142, "reg": 16.0,
+        "circle": "七股鹽田濱海風情特區",
+        "transit": "距離台61線西濱快速道路車程 4 分鐘",
+        "rezoning": "七股區核心重劃/生活特區",
+        "school": "竹橋國小/昭明國中",
+        "mall": "七股區主要商圈/連鎖量販"
+    },
+    "將軍區": {
+        "sid": None, "lat": 23.1995, "lng": 120.157, "reg": 15.0,
+        "circle": "將軍漁港濱海風情圈",
+        "transit": "距離台17線濱海公路車程 3 分鐘",
+        "rezoning": "將軍區核心重劃/生活特區",
+        "school": "將軍國小/將軍國中",
+        "mall": "將軍區主要商圈/連鎖量販"
+    },
+    "北門區": {
+        "sid": None, "lat": 23.268, "lng": 120.125, "reg": 14.0,
+        "circle": "北門水晶教堂觀光園區",
+        "transit": "距離台84快速道路北門交流道車程 4 分鐘",
+        "rezoning": "北門區核心重劃/生活特區",
+        "school": "北門國小/北門國中",
+        "mall": "北門區主要商圈/連鎖量販"
+    },
+    "學甲區": {
+        "sid": None, "lat": 23.232, "lng": 120.18, "reg": 17.5,
+        "circle": "學甲市心中洲商圈",
+        "transit": "距離學甲客運站步行 3 分鐘",
+        "rezoning": "學甲區核心重劃/生活特區",
+        "school": "學甲國小/學甲國中",
+        "mall": "學甲區主要商圈/連鎖量販"
+    },
+    "六甲區": {
+        "sid": None, "lat": 23.2325, "lng": 120.3495, "reg": 18.5,
+        "circle": "六甲區公所生活圈",
+        "transit": "距離林鳳營火車站車程 4 分鐘",
+        "rezoning": "六甲區核心重劃/生活特區",
+        "school": "六甲國小/六甲國中雙學區",
+        "mall": "六甲區主要商圈/連鎖量販"
+    },
+    "下營區": {
+        "sid": None, "lat": 23.235, "lng": 120.264, "reg": 18.0,
+        "circle": "下營上帝廟商圈",
+        "transit": "距離市道174線車程 3 分鐘",
+        "rezoning": "下營區核心重劃/生活特區",
+        "school": "下營國小/下營國中",
+        "mall": "下營區主要商圈/連鎖量販"
+    },
+    "官田區": {
+        "sid": None, "lat": 23.195, "lng": 120.325, "reg": 19.5,
+        "circle": "官田隆田車站生活圈",
+        "transit": "距離隆田火車站步行 4 分鐘",
+        "rezoning": "官田區核心重劃/生活特區",
+        "school": "隆田國小/官田國中",
+        "mall": "官田區主要商圈/連鎖量販"
+    },
+    "大內區": {
+        "sid": None, "lat": 23.12, "lng": 120.353, "reg": 16.0,
+        "circle": "大內南瀛天文館園區圈",
+        "transit": "距離台84快速道路車程 3 分鐘",
+        "rezoning": "大內區核心重劃/生活特區",
+        "school": "大內國小/大內國中",
+        "mall": "大內區主要商圈/連鎖量販"
+    },
+    "山上區": {
+        "sid": None, "lat": 23.1025, "lng": 120.354, "reg": 18.0,
+        "circle": "山上水道博物館園區",
+        "transit": "距離市道178線車程 3 分鐘",
+        "rezoning": "山上區核心重劃/生活特區",
+        "school": "山上國小/山上國中",
+        "mall": "山上區主要商圈/連鎖量販"
+    },
+    "新化區": {
+        "sid": None, "lat": 23.0384, "lng": 120.3106, "reg": 24.0,
+        "circle": "新化老街文創生活圈",
+        "transit": "距離國道8號新化端車程 4 分鐘",
+        "rezoning": "新化區核心重劃/生活特區",
+        "school": "新化國小/新化國中/新化高中",
+        "mall": "新化區主要商圈/連鎖量販"
+    },
+    "關廟區": {
+        "sid": None, "lat": 22.962, "lng": 120.328, "reg": 21.5,
+        "circle": "關廟市心公所生活圈",
+        "transit": "距離台86交流道車程 3 分鐘",
+        "rezoning": "關廟區核心重劃/生活特區",
+        "school": "關廟國小/關廟國中學區",
+        "mall": "關廟區主要商圈/連鎖量販"
+    },
+    "龍崎區": {
+        "sid": None, "lat": 22.9645, "lng": 120.361, "reg": 12.0,
+        "circle": "龍崎虎形山自然休閒圈",
+        "transit": "距離市道182線車程 3 分鐘",
+        "rezoning": "龍崎區核心重劃/生活特區",
+        "school": "龍崎國小/龍崎國中",
+        "mall": "龍崎區主要商圈/連鎖量販"
+    },
+    "玉井區": {
+        "sid": None, "lat": 23.124, "lng": 120.46, "reg": 16.5,
+        "circle": "玉井芒菓山城樂活圈",
+        "transit": "距離玉井客運總站步行 3 分鐘",
+        "rezoning": "玉井區核心重劃/生活特區",
+        "school": "玉井國小/玉井國中",
+        "mall": "玉井區主要商圈/連鎖量販"
+    },
+    "楠西區": {
+        "sid": None, "lat": 23.173, "lng": 120.485, "reg": 14.5,
+        "circle": "楠西水庫觀光休閒圈",
+        "transit": "距離台3線主要幹道車程 2 分鐘",
+        "rezoning": "楠西區核心重劃/生活特區",
+        "school": "楠西國小/楠西國中",
+        "mall": "楠西區主要商圈/連鎖量販"
+    },
+    "南化區": {
+        "sid": None, "lat": 23.0435, "lng": 120.477, "reg": 13.5,
+        "circle": "南化水庫生態風景特區",
+        "transit": "距離南化區公所商圈步行 3 分鐘",
+        "rezoning": "南化區核心重劃/生活特區",
+        "school": "南化國小/南化國中",
+        "mall": "南化區主要商圈/連鎖量販"
+    },
+    "左鎮區": {
+        "sid": None, "lat": 23.0581, "lng": 120.4074, "reg": 15.0,
+        "circle": "左鎮化石園區文教特區",
+        "transit": "距離台20線直達市區車程 5 分鐘",
+        "rezoning": "左鎮區核心重劃/生活特區",
+        "school": "左鎮國小/左鎮國中",
+        "mall": "左鎮區主要商圈/連鎖量販"
+    },
 }
 
 # 依行政區嚴格劃分的路段與地標座標庫，防止跨區同名道路對應錯誤
@@ -292,9 +488,9 @@ def resolve_district_and_coords(text, title, default_dist, house_id):
     """
     從 591 內文與標題雙向解析真實行政區與座標，嚴格杜絕外縣市（如雲林/嘉義/高雄）與跨區錯位
     """
-    # 嚴格排除外縣市干擾
-    NON_TAINAN = ["雲林", "嘉義", "高雄", "屏東", "台中", "彰化", "南投", "台北", "新北", "桃園", "新竹", "苗栗", "宜蘭", "花蓮", "台東", "澎湖", "金門", "連江"]
-    if any(k in text for k in NON_TAINAN) or any(k in title for k in NON_TAINAN):
+    # 嚴格排除外縣市干擾（針對地址或標題開頭明確標註其他縣市，避免將提及「台北建商」「近高鐵往返台北」之台南物件誤殺）
+    NON_TAINAN_PATTERN = r'(高雄市|嘉義縣|嘉義市|屏東縣|屏東市|台中市|彰化縣|雲林縣|南投縣|台北市|新北市|桃園市|新竹市|新竹縣|苗栗縣|宜蘭縣|花蓮縣|台東縣|基隆市)-'
+    if re.search(NON_TAINAN_PATTERN, text):
         return None, None, None, None, False
 
     # 1. 優先從 591 內文「台南市-行政區-路名」提取
@@ -373,18 +569,20 @@ def crawl_591_all_districts(pages_per_dist=3):
                 req = urllib.request.Request(url, headers=headers)
                 with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
                     data = json.loads(resp.read().decode('utf-8'))
-                    sub_html = data.get("content", {}).get("subContent", "")
+                    if not isinstance(data, dict):
+                        break
+                    sub_html = (data.get("content") or {}).get("subContent", "")
                     soup = BeautifulSoup(sub_html, 'html.parser')
                     lis = soup.find_all('li')
                     if not lis:
                         break
 
                     for li in lis:
-                        a = li.find('a', href=re.compile(r'/home/house/detail/'))
+                        a = li.find('a', href=re.compile(r'(\d{5,10})\.html'))
                         if not a:
                             continue
                         href = a.get('href')
-                        m_id = re.search(r'/detail/\d+/(\d+)\.html', href)
+                        m_id = re.search(r'(\d{5,10})\.html', href)
                         if not m_id:
                             continue
                         house_id = m_id.group(1)
@@ -516,7 +714,7 @@ def crawl_591_all_districts(pages_per_dist=3):
                             "sourcePlatform": "591房屋交易網",
                             "sourceUrl": clean_url,
                             "vipTargetPrice": f"{target_low:,} 萬 ~ {target_high:,} 萬 (約 {target_unit} 萬/坪)",
-                            "vipPriceHistory": f"{real_dist}近一年實登均價約 {reg_unit} 萬/坪，本案 591 開價 {ask_unit} 萬/坪 (開價溢價幅度 {diff_pct:+}%)。",
+                            "vipPriceHistory": f"{real_dist}近一年實登均價約 {reg_unit} 萬/坪，本案 591 開價 {ask_unit} 萬/坪 (" + (f"每坪讓利折讓幅度 {abs(diff_pct)}%" if diff_pct < 0 else (f"開價溢價幅度 +{diff_pct}%" if diff_pct > 0 else "每坪平貼實登均價 0.0%")) + ")。",
                             "vipNegotiationTip": f"建議首輪以實登行情 88 折 ({target_low} 萬 / 約 {target_unit} 萬/坪) 下斡旋進場，為屋主預留約 {round(ask_total - target_low)} 萬砍價破口！",
                             "liquefaction": "🟡 中潛勢（平原地層・符合現代耐震規範）" if real_dist in ["安南區", "安平區"] else "🟢 低潛勢（地層穩固・抗震安全優）",
                             "floodRisk": "🟢 安全優質（市府區域防洪完備・一般暴雨無虞）",
@@ -539,15 +737,42 @@ def crawl_591_all_districts(pages_per_dist=3):
 def main():
     listings = crawl_591_all_districts(pages_per_dist=3)
     out_file = "listings_onsale.json"
+    
+    existing_listings = []
+    if os.path.exists(out_file):
+        try:
+            with open(out_file, "r", encoding="utf-8") as f:
+                existing_listings = json.load(f)
+        except Exception:
+            existing_listings = []
+
+    if len(listings) == 0:
+        print(f"⚠️ 今日 591 爬蟲未獲取新房源（可能受網路限制或反爬機制影響），安全保留既有 {len(existing_listings)} 筆房源，避免檔案歸零。")
+        return
+
     REDUNDANT_EXPORT_KEYS = {
         'vipPriceHistory', 'vipNegotiationTip', 'vipTargetPrice', 'aiBadge',
         'seismicNote', 'priceDiffWan', 'rentEst', 'grossYield', 'monthlyMortgage',
         'sourcePlatform', 'storeCount', 'layoutScore'
     }
     slim_listings = [{k: v for k, v in item.items() if k not in REDUNDANT_EXPORT_KEYS} for item in listings]
+
+    # 以 houseId 進行增量合併：保留既有案源並優先採用今日更新最新數據（以字串統一鍵值防型別衝突）
+    merged_map = {}
+    for item in existing_listings:
+        hid = str(item.get("houseId") or item.get("id") or "")
+        if hid:
+            merged_map[hid] = item
+    for item in slim_listings:
+        hid = str(item.get("houseId") or item.get("id") or "")
+        if hid:
+            merged_map[hid] = item
+
+    final_listings = list(merged_map.values()) if merged_map else slim_listings
+
     with open(out_file, "w", encoding="utf-8") as f:
-        json.dump(slim_listings, f, ensure_ascii=False, separators=(',', ':'))
-    print(f"🎉 成功寫入 {len(listings)} 筆精簡在售房源至 {out_file}！")
+        json.dump(final_listings, f, ensure_ascii=False, separators=(',', ':'))
+    print(f"🎉 成功寫入 {len(final_listings)} 筆精簡在售房源至 {out_file} (今日獲取: {len(slim_listings)} 筆)！")
 
 if __name__ == "__main__":
     main()

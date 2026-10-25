@@ -15,4 +15,5 @@ input.css
 tailwind.min.css
 .vscode/
 .idea/
+.agents/
 *.log
