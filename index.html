@@ -458,8 +458,8 @@
       <div class="space-y-2.5">
         <div class="border border-amber-500/40 bg-amber-500/10 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:border-amber-400 transition">
           <div>
-            <div class="font-extrabold text-sm text-amber-200 whitespace-nowrap">🔥 30天全站無限解鎖</div>
-            <div class="text-[11px] text-slate-400">含 591 斡旋目標底價與屋主折讓空間</div>
+            <div class="font-extrabold text-sm text-amber-200 whitespace-nowrap">🔥 30天全站無限解鎖 + LINE 破盤推播</div>
+            <div class="text-[11px] text-slate-400">含 591 斡旋底價、投報精算與即時破盤快訊</div>
           </div>
           <div class="text-right">
             <div class="font-black text-base text-amber-400">NT$ 299</div>
@@ -469,8 +469,8 @@
 
         <div class="border border-slate-700 bg-slate-800/60 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:border-slate-600 transition">
           <div>
-            <div class="font-extrabold text-sm text-slate-200 whitespace-nowrap">🌟 終身尊榮會員</div>
-            <div class="text-[11px] text-slate-400">永久享有每日自動更新實登與 591 監控</div>
+            <div class="font-extrabold text-sm text-slate-200 whitespace-nowrap">🌟 終身尊榮會員 + 專屬 VIP 頻道</div>
+            <div class="text-[11px] text-slate-400">永久享有每日自動更新實登、591 監控與破盤通知</div>
           </div>
           <div class="text-right">
             <div class="font-black text-base text-white">NT$ 999</div>
@@ -1921,23 +1921,104 @@
             </div>
           </div>
 
-          <!-- 財務速算 -->
-          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 sm:p-3.5 space-y-2 text-xs">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-              <span class="font-extrabold text-emerald-400">💰 投資收租與每月房貸速算</span>
-              <span class="text-[10px] text-slate-400">新青安 8 成 30 年基準</span>
+          <!-- 南科投資客・深度租金投報率與淨現金流試算器 (ROI Pro) -->
+          <div class="bg-slate-950 border border-emerald-500/50 rounded-2xl p-3.5 sm:p-4 space-y-3 text-xs shadow-xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-base">💰</span>
+                <span class="font-extrabold text-emerald-400 text-xs sm:text-sm truncate">南科投資客・深度租金投報與現金流試算 (ROI Pro)</span>
+              </div>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">精算模組</span>
             </div>
-            <div class="grid grid-cols-2 gap-2 text-center pt-1">
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <div class="text-[11px] text-slate-400">預估月收租金</div>
-                <div class="text-sm sm:text-base font-black text-emerald-400">約 ${item.rentEst.toLocaleString()} 元/月</div>
-                <div class="text-[10px] text-amber-300 font-bold">毛投報率約 ${item.grossYield}%</div>
+
+            <!-- 可調參數控制盤 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              <div>
+                <label for="roiLoanRatio" class="text-[10px] text-slate-400 block mb-1">貸款成數：</label>
+                <select id="roiLoanRatio" onchange="updateRoiCalc()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-400">
+                  <option value="0.85">8.5成 (首購寬鬆)</option>
+                  <option value="0.80" selected>8.0成 (常規標準)</option>
+                  <option value="0.70">7.0成 (換屋/非首購)</option>
+                  <option value="0.60">6.0成 (二戶管制)</option>
+                  <option value="0.50">5.0成 (低槓桿保守)</option>
+                </select>
               </div>
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <div class="text-[11px] text-slate-400">預估月付房貸</div>
-                <div class="text-sm sm:text-base font-black text-white">約 ${item.monthlyMortgage.toLocaleString()} 元/月</div>
-                <div class="text-[10px] text-slate-400">8成貸款 / 30年期</div>
+
+              <div>
+                <label for="roiLoanYears" class="text-[10px] text-slate-400 block mb-1">貸款年限：</label>
+                <select id="roiLoanYears" onchange="updateRoiCalc()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-400">
+                  <option value="40">40年期 (新青安)</option>
+                  <option value="30" selected>30年期 (市場主力)</option>
+                  <option value="20">20年期 (加速還款)</option>
+                </select>
               </div>
+
+              <div>
+                <label for="roiInterestRate" class="text-[10px] text-slate-400 block mb-1">房貸利率：</label>
+                <select id="roiInterestRate" onchange="updateRoiCalc()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-400">
+                  <option value="1.775">新青安 1.775%</option>
+                  <option value="2.185" selected>首購優利 2.185%</option>
+                  <option value="2.500">投資購屋 2.500%</option>
+                  <option value="3.150">二戶管制 3.150%</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="roiMonthlyRent" class="text-[10px] text-slate-400 block mb-1">預估月收租金：</label>
+                <div class="relative flex items-center">
+                  <input type="number" id="roiMonthlyRent" value="${item.rentEst}" step="500" min="0" oninput="updateRoiCalc()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-emerald-300 font-bold focus:outline-none focus:border-emerald-400 pr-9" />
+                  <span class="absolute right-2 text-[10px] text-slate-500 pointer-events-none">元</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 即時動態財務指標 (4 格矩陣) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1">
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 mb-0.5">預估月付房貸</div>
+                <div id="roiMortgageVal" class="text-xs sm:text-sm font-black text-white">約 ${item.monthlyMortgage.toLocaleString()} 元/月</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">本息平均攤還</div>
+              </div>
+
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 mb-0.5">自備頭期款</div>
+                <div id="roiDownPaymentVal" class="text-xs sm:text-sm font-black text-amber-300">${(item.askTotal * 0.2).toFixed(1)} 萬</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">自有資金準備</div>
+              </div>
+
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 mb-0.5">年化毛投報率</div>
+                <div id="roiCapRateVal" class="text-xs sm:text-sm font-black text-emerald-400">${item.grossYield}%</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">年租金 / 總價</div>
+              </div>
+
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 mb-0.5">每月淨現金流</div>
+                <div id="roiCashFlowVal" class="text-xs sm:text-sm font-black text-amber-400">計算中...</div>
+                <div class="mt-0.5"><span id="roiCashFlowBadge" class="text-[9px] text-amber-300 font-bold bg-amber-500/20 px-1.5 py-0.5 rounded">試算中</span></div>
+              </div>
+            </div>
+
+            <!-- AI 投資定位備忘錄 -->
+            <div id="roiMemoVal" class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 text-[11px] text-slate-300 leading-relaxed">
+              💡 載入試算中...
+            </div>
+
+            <!-- VIP 破盤價 LINE 警報推播專屬 CTA -->
+            <div class="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-amber-950/40 border border-emerald-500/40 rounded-xl p-3 sm:p-3.5 space-y-2 mt-1">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-amber-300 text-xs sm:text-sm flex items-center gap-1.5">
+                  <span>⚡</span> VIP 破盤價 LINE 警報推播
+                </span>
+                <span class="text-[10px] bg-red-500/20 text-red-300 font-bold px-2 py-0.5 rounded-full border border-red-500/30 animate-pulse">搶先上車</span>
+              </div>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                鎖定台南與南科熱區？每當有<strong class="text-amber-300">開價低於實登 85 折</strong>、或<strong class="text-emerald-400">年化毛投報高於 4.2%</strong> 之急售破盤案，VIP LINE 秒速推播！
+              </p>
+              <button onclick="openVipModal()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-2.5 px-3 rounded-xl text-xs sm:text-sm shadow-lg transition flex items-center justify-center gap-1.5 transform hover:scale-[1.01]">
+                <span>📲 立即開啟 VIP 破盤價 LINE 警報推播</span>
+                <span class="text-xs">↗</span>
+              </button>
             </div>
           </div>
 
@@ -2038,6 +2119,9 @@
       } catch (e) {
         // 容錯靜默防護
       }
+      if (window.updateRoiCalc) {
+        window.updateRoiCalc();
+      }
     }
 
     // ==========================================
@@ -2130,6 +2214,73 @@
       alert(`🎉 感謝 ${name}！您的諮詢需求已送出，在地房產專家將於 24 小時內與您聯繫！`);
       document.getElementById('leadName').value = "";
       document.getElementById('leadPhone').value = "";
+    };
+
+    window.updateRoiCalc = function () {
+      if (!selectedItem) return;
+      const total = Number(selectedItem.askTotal) * 10000;
+      const loanRatioEl = document.getElementById('roiLoanRatio');
+      const loanYearsEl = document.getElementById('roiLoanYears');
+      const rateEl = document.getElementById('roiInterestRate');
+      const rentEl = document.getElementById('roiMonthlyRent');
+      if (!loanRatioEl || !loanYearsEl || !rateEl || !rentEl) return;
+
+      const loanRatio = parseFloat(loanRatioEl.value) || 0.8;
+      const loanYears = parseInt(loanYearsEl.value, 10) || 30;
+      const annualRate = parseFloat(rateEl.value) || 2.185;
+      const monthlyRent = parseFloat(rentEl.value) || 0;
+
+      const loanAmount = total * loanRatio;
+      const downPaymentWan = ((total - loanAmount) / 10000).toFixed(1);
+
+      const monthlyRate = annualRate / 100 / 12;
+      const totalMonths = loanYears * 12;
+      let monthlyMortgage = 0;
+      if (monthlyRate > 0) {
+        monthlyMortgage = Math.round(loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1));
+      } else {
+        monthlyMortgage = Math.round(loanAmount / totalMonths);
+      }
+
+      const netCashFlow = Math.round(monthlyRent - monthlyMortgage);
+      const capRate = total > 0 ? ((monthlyRent * 12 / total) * 100).toFixed(2) : '0.00';
+
+      const mortgageValEl = document.getElementById('roiMortgageVal');
+      const downPaymentValEl = document.getElementById('roiDownPaymentVal');
+      const capRateValEl = document.getElementById('roiCapRateVal');
+      const cashFlowValEl = document.getElementById('roiCashFlowVal');
+      const cashFlowBadgeEl = document.getElementById('roiCashFlowBadge');
+      const memoValEl = document.getElementById('roiMemoVal');
+
+      if (mortgageValEl) mortgageValEl.innerText = '約 ' + monthlyMortgage.toLocaleString() + ' 元/月';
+      if (downPaymentValEl) downPaymentValEl.innerText = downPaymentWan + ' 萬';
+      if (capRateValEl) capRateValEl.innerText = capRate + '%';
+
+      if (cashFlowValEl) {
+        if (netCashFlow >= 0) {
+          cashFlowValEl.innerHTML = `<span class="text-emerald-400 font-black">+${netCashFlow.toLocaleString()} 元</span>`;
+          if (cashFlowBadgeEl) {
+            cashFlowBadgeEl.className = 'text-[9px] text-emerald-300 font-bold bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30';
+            cashFlowBadgeEl.innerText = '正現金流 (租金覆蓋房貸)';
+          }
+        } else {
+          cashFlowValEl.innerHTML = `<span class="text-amber-400 font-black">${netCashFlow.toLocaleString()} 元</span>`;
+          if (cashFlowBadgeEl) {
+            cashFlowBadgeEl.className = 'text-[9px] text-amber-300 font-bold bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30';
+            cashFlowBadgeEl.innerText = '每月自補 (純買房抗通膨)';
+          }
+        }
+      }
+
+      if (memoValEl) {
+        if (parseFloat(capRate) >= 3.8) {
+          memoValEl.innerHTML = '🔥 <strong class="text-emerald-300">高收租防禦案</strong>：預估毛投報 ' + capRate + '%，租金實質防禦性優異，適合南科工程師與置產包租族！';
+        } else if (parseFloat(capRate) >= 2.5) {
+          memoValEl.innerHTML = '📈 <strong class="text-sky-300">均衡型投資案</strong>：預估毛投報 ' + capRate + '%，租金穩定支撐房貸，長線坐享台南熱區地段增值利多。';
+        } else {
+          memoValEl.innerHTML = '💎 <strong class="text-amber-300">自住增值導向</strong>：預估毛投報 ' + capRate + '%，適合自住首購自備低負擔，主要著眼於重大交通與重劃特區未來漲幅。';
+        }
+      }
     };
 
     window.selectAndUnlock = function (id) {
