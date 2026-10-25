@@ -9,6 +9,11 @@
   <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
   <link rel="preload" href="listings.json" as="fetch" crossorigin="anonymous">
   <link rel="preload" href="listings_onsale.json" as="fetch" crossorigin="anonymous">
+  <!-- ========================================================================== -->
+  <!-- Google AdSense 官方標準載入代碼 (Kevin 廣告變現模組)                          -->
+  <!-- 注意：上線前請將 ca-pub-XXXXXXXXXXXXXXXX 替換為您的有效 Google AdSense 發布商 ID -->
+  <!-- ========================================================================== -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -417,6 +422,23 @@
           <div class="h-16 bg-slate-800/50 rounded-xl"></div>
         </div>
         <div class="h-28 bg-slate-800/40 rounded-xl"></div>
+      <!-- 廣告贊助單元 (側邊欄推薦，骨架屏預留位，符合 Google AdSense 自適應規範) -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-center my-3">
+        <div class="text-[10px] text-slate-500 mb-1 flex items-center justify-between">
+          <span>贊助商廣告</span>
+          <span>Google AdSense</span>
+        </div>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+
         <div class="text-center text-xs text-slate-500 pt-2">⚡ 正在即時加載台南房產 AI 雷達與 591 最新在售案源...</div>
       </div>
     </div>
@@ -465,6 +487,24 @@
           </button>
         </div>
         <p class="text-[10px] text-slate-500">提示：測試期間可輸入 <code class="text-amber-400 bg-slate-950 px-1 py-0.5 rounded">TAINAN888</code> 免費體驗 VIP 全功能！</p>
+      </div>
+
+      
+      <!-- Google AdSense VIP 彈窗底部贊助資訊 -->
+      <div class="border-t border-slate-800 pt-2 text-center">
+        <div class="text-[10px] text-slate-500 mb-1 flex items-center justify-between">
+          <span>精選贊助</span>
+          <span>Google 廣告</span>
+        </div>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="3456789012"
+             data-ad-format="horizontal"
+             data-full-width-responsive="true"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
       </div>
 
       <div class="text-center text-[11px] text-slate-400 pt-1">
@@ -1911,6 +1951,23 @@
             </div>
           ` : ''}
 
+          
+          <!-- Google AdSense 側邊欄物件深度分析原生自適應廣告單元 -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-center space-y-1">
+            <div class="flex items-center justify-between text-[10px] text-slate-500 px-1">
+              <span>贊助商推薦</span>
+              <span>廣告 (AdSense)</span>
+            </div>
+            <div class="min-h-[100px] flex items-center justify-center overflow-hidden">
+              <ins class="adsbygoogle"
+                   style="display:block"
+                   data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                   data-ad-slot="2345678901"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+            </div>
+          </div>
+
           <!-- VIP 付費牆專區 -->
           <div class="relative bg-slate-950 border border-amber-500/50 rounded-2xl p-4 sm:p-5 overflow-hidden shadow-2xl">
             <div class="flex items-center justify-between border-b border-amber-500/30 pb-2 mb-3">
@@ -1975,6 +2032,12 @@
           </div>
         </div>
       `;
+      // 安全初始化動態渲染的 Google AdSense 廣告單元
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        // 容錯靜默防護
+      }
     }
 
     // ==========================================
