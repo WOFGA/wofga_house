@@ -1,4 +1,4 @@
-name: Tainan Real Estate AI Daily Runner
+name: Tainan Real Estate AI Daily Runner & Bob Quality Gate
 
 on:
   schedule:
@@ -32,9 +32,13 @@ jobs:
           python run_agent.py
           python fetch_591_listings.py
 
+      - name: 🧸 Bob 品質巡檢 (執行全平台與 UI 完整性自動化測試)
+        run: |
+          python test_platform_integrity.py
+
       - name: 自動將更新後的 listings.json 與 listings_onsale.json 推回網頁
         run: |
           git config --global user.name "Gemini AI Agent"
           git config --global user.email "agent@wofga-house.ai"
           git add listings.json listings_onsale.json
-          git diff --staged --quiet || (git commit -m "🤖 AI Agent: 自動更新今日台南房產實登與591在售數據" && git push)
+          git diff --staged --quiet || (git commit -m "🤖 AI Agent: 自動更新今日台南房產實登與591在售數據 (經 Bob 巡檢通過)" && git push)
