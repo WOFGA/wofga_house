@@ -599,11 +599,18 @@ for idx, (_, row) in enumerate(clean_df.iterrows()):
     }
     listings.append(listing)
 
-# 寫入 listings.json 供前端地圖即時載入
-with open('listings.json', 'w', encoding='utf-8') as jf:
-    json.dump(listings, jf, ensure_ascii=False, indent=2)
+# 寫入 listings.json 供前端地圖即時載入 (精簡冗餘衍生欄位並使用緊湊壓縮格式)
+REDUNDANT_EXPORT_KEYS = {
+    'vipPriceHistory', 'vipNegotiationTip', 'vipTargetPrice', 'aiBadge',
+    'seismicNote', 'priceDiffWan', 'rentEst', 'grossYield', 'monthlyMortgage',
+    'sourcePlatform', 'storeCount', 'layoutScore'
+}
+slim_listings = [{k: v for k, v in item.items() if k not in REDUNDANT_EXPORT_KEYS} for item in listings]
 
-print(f"✅ 已成功更新 listings.json！共寫入 {len(listings)} 筆精準台南房產雷達資料。")
+with open('listings.json', 'w', encoding='utf-8') as jf:
+    json.dump(slim_listings, jf, ensure_ascii=False, separators=(',', ':'))
+
+print(f"✅ 已成功更新 listings.json！共寫入 {len(listings)} 筆精準台南房產雷達資料 (已緊湊壓縮)。")
 
 # ==========================================
 # 3. 篩選當日「低於均價最多前 5 名 A 級物件」並由 Gemini 3.8 Flash 撰寫投資日報

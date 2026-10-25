@@ -539,9 +539,15 @@ def crawl_591_all_districts(pages_per_dist=3):
 def main():
     listings = crawl_591_all_districts(pages_per_dist=3)
     out_file = "listings_onsale.json"
+    REDUNDANT_EXPORT_KEYS = {
+        'vipPriceHistory', 'vipNegotiationTip', 'vipTargetPrice', 'aiBadge',
+        'seismicNote', 'priceDiffWan', 'rentEst', 'grossYield', 'monthlyMortgage',
+        'sourcePlatform', 'storeCount', 'layoutScore'
+    }
+    slim_listings = [{k: v for k, v in item.items() if k not in REDUNDANT_EXPORT_KEYS} for item in listings]
     with open(out_file, "w", encoding="utf-8") as f:
-        json.dump(listings, f, ensure_ascii=False, indent=2)
-    print(f"🎉 成功寫入 {len(listings)} 筆海量在售房源至 {out_file}！")
+        json.dump(slim_listings, f, ensure_ascii=False, separators=(',', ':'))
+    print(f"🎉 成功寫入 {len(listings)} 筆精簡在售房源至 {out_file}！")
 
 if __name__ == "__main__":
     main()
