@@ -14,3 +14,11 @@
   - Integrate official AdSense script tags with client ID attributes.
   - Insert responsive ad unit placements (`<ins class="adsbygoogle" ...></ins>`).
   - Follow Google Publisher guidelines to ensure account safety and high CPM / CTR without degrading UI/UX.
+
+### Bob — UI/UX & WebGIS Frontend Specialist
+- **Name**: `bob`
+- **Objective**: Responsible for frontend user experience, Leaflet map interactions, responsive layouts, Tailwind styling, and visual delight.
+- **Workflow & Rules**:
+  - Maintain fluid and accessible mobile (360px+) and desktop WebGIS experience.
+  - Optimize map marker clustering, popups, filters, and animation smoothness.
+  - Keep styling modern, responsive, and delightful without breaking layout integrity.
